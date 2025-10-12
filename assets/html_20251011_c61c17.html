@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notación Bra-Ket en Computación Cuántica</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0a0e27;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            position: relative;
+        }
+        
+        svg {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-family: 'Times New Roman', serif;
+            font-size: 14px;
+            max-width: 300px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .control-btn {
+            background: #1e293b;
+            color: white;
+            border: 1px solid #475569;
+            border-radius: 5px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-family: 'Times New Roman', serif;
+            transition: all 0.3s;
+        }
+        
+        .control-btn:hover {
+            background: #334155;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 1200px) {
+            body {
+                padding: 10px;
+            }
+            
+            .controls {
+                position: relative;
+                top: 0;
+                right: 0;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <button class="control-btn" onclick="toggleAnimations()">Alternar Animaciones</button>
+            <button class="control-btn" onclick="resetView()">Restablecer Vista</button>
+            <button class="control-btn" onclick="toggleDarkMode()">Modo Oscuro/Claro</button>
+        </div>
+        
+        <svg viewBox="0 0 1400 1100" xmlns="http://www.w3.org/2000/svg" id="quantum-svg">
+            <!-- Definiciones mejoradas -->
+            <defs>
+                <!-- Gradientes originales -->
+                <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#0a0e27;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#1a1f3a;stop-opacity:1" />
+                </linearGradient>
+                
+                <linearGradient id="cardGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:0.95" />
+                    <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.95" />
+                </linearGradient>
+                
+                <linearGradient id="cardGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#7c2d12;stop-opacity:0.95" />
+                    <stop offset="100%" style="stop-color:#ea580c;stop-opacity:0.95" />
+                </linearGradient>
+                
+                <linearGradient id="cardGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#14532d;stop-opacity:0.95" />
+                    <stop offset="100%" style="stop-color:#22c55e;stop-opacity:0.95" />
+                </linearGradient>
+                
+                <!-- Gradientes para modo claro -->
+                <linearGradient id="bgGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#f0f4f8;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+                </linearGradient>
+                
+                <!-- Filtros mejorados -->
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                
+                <filter id="shadow">
+                    <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.5"/>
+                </filter>
+                
+                <!-- Filtros para animaciones -->
+                <filter id="pulse">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur"/>
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="pulse"/>
+                </filter>
+                
+                <!-- Patrones para elementos de fondo -->
+                <pattern id="quantumPattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                    <circle cx="50" cy="50" r="2" fill="#60a5fa" opacity="0.3"/>
+                    <circle cx="20" cy="20" r="1" fill="#60a5fa" opacity="0.2"/>
+                    <circle cx="80" cy="80" r="1" fill="#60a5fa" opacity="0.2"/>
+                </pattern>
+            </defs>
+            
+            <!-- Fondo mejorado con patrón -->
+            <rect width="1400" height="900" fill="url(#bgGrad)" class="background"/>
+            <rect width="1400" height="900" fill="url(#quantumPattern)" opacity="0.1"/>
+            
+            <!-- Patrón de fondo cuántico animado -->
+            <g opacity="0.05" class="quantum-elements">
+                <circle cx="200" cy="150" r="100" fill="none" stroke="#60a5fa" stroke-width="1" class="pulse-animation"/>
+                <circle cx="200" cy="150" r="120" fill="none" stroke="#60a5fa" stroke-width="1" class="pulse-animation" style="animation-delay: 1s"/>
+                <circle cx="1200" cy="700" r="80" fill="none" stroke="#60a5fa" stroke-width="1" class="pulse-animation" style="animation-delay: 2s"/>
+                <circle cx="1200" cy="700" r="100" fill="none" stroke="#60a5fa" stroke-width="1" class="pulse-animation" style="animation-delay: 3s"/>
+                <line x1="100" y1="100" x2="1300" y2="800" stroke="#60a5fa" stroke-width="0.5"/>
+                <line x1="100" y1="800" x2="1300" y2="100" stroke="#60a5fa" stroke-width="0.5"/>
+            </g>
+            
+            <!-- Título Principal con mejor accesibilidad -->
+            <title>Notación Bra-Ket en Computación Cuántica - Representación Matemática Correcta de Estados Cuánticos</title>
+            <desc>
+                Infografía educativa que explica la notación Bra-Ket utilizada en computación cuántica,
+                incluyendo superposición de cúbits, sistemas de múltiples cúbits, producto tensorial,
+                propiedades fundamentales y pioneros del campo.
+            </desc>
+            
+            <text x="700" y="60" font-family="'Times New Roman', serif" font-size="42" font-weight="bold" fill="#ffffff" text-anchor="middle" filter="url(#glow)" class="main-title">
+                NOTACIÓN BRA-KET EN COMPUTACIÓN CUÁNTICA
+            </text>
+            <text x="700" y="95" font-family="'Times New Roman', serif" font-size="20" fill="#94a3b8" text-anchor="middle" font-style="italic" class="subtitle">
+                Representación Matemática Correcta de Estados Cuánticos
+            </text>
+            
+            <!-- Línea divisoria -->
+            <line x1="200" y1="115" x2="1200" y2="115" stroke="#475569" stroke-width="2"/>
+            
+            <!-- SECCIÓN 1: Superposición de Un Cúbit -->
+            <g filter="url(#shadow)" class="interactive-section" data-section="superposicion">
+                <rect x="80" y="150" width="400" height="220" rx="15" fill="url(#cardGrad1)" stroke="#60a5fa" stroke-width="2" class="section-bg"/>
+                
+                <text x="280" y="185" font-family="'Times New Roman', serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+                    1. SUPERPOSICIÓN DE UN CÚBIT
+                </text>
+                
+                <line x1="110" y1="200" x2="450" y2="200" stroke="#60a5fa" stroke-width="1" opacity="0.5"/>
+                
+                <!-- Estado general -->
+                <text x="280" y="240" font-family="'Times New Roman', serif" font-size="20" fill="#e0e7ff" text-anchor="middle" font-weight="bold">
+                    Estado General:
+                </text>
+                <text x="280" y="275" font-family="'Courier New', monospace" font-size="28" fill="#ffffff" text-anchor="middle" class="formula">
+                    |ψ⟩ = α|0⟩ + β|1⟩
+                </text>
+                
+                <!-- Condición de normalización -->
+                <text x="280" y="315" font-family="'Times New Roman', serif" font-size="18" fill="#e0e7ff" text-anchor="middle" font-style="italic">
+                    Condición de normalización:
+                </text>
+                <text x="280" y="345" font-family="'Courier New', monospace" font-size="24" fill="#fbbf24" text-anchor="middle" class="formula">
+                    |α|² + |β|² = 1
+                </text>
+            </g>
+            
+            <!-- SECCIÓN 2: Sistema de Dos Cúbits -->
+            <g filter="url(#shadow)" class="interactive-section" data-section="dos-cubits">
+                <rect x="500" y="150" width="420" height="220" rx="15" fill="url(#cardGrad2)" stroke="#fb923c" stroke-width="2" class="section-bg"/>
+                
+                <text x="710" y="185" font-family="'Times New Roman', serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+                    2. SISTEMA DE DOS CÚBITS
+                </text>
+                
+                <line x1="530" y1="200" x2="890" y2="200" stroke="#fb923c" stroke-width="1" opacity="0.5"/>
+                
+                <!-- Estados base -->
+                <text x="710" y="235" font-family="'Times New Roman', serif" font-size="18" fill="#fed7aa" text-anchor="middle" font-weight="bold">
+                    Estados Base: |00⟩, |01⟩, |10⟩, |11⟩
+                </text>
+                
+                <!-- Superposición general -->
+                <text x="710" y="268" font-family="'Courier New', monospace" font-size="22" fill="#ffffff" text-anchor="middle" class="formula">
+                    |Ψ⟩ = α|00⟩ + β|01⟩
+                </text>
+                <text x="710" y="295" font-family="'Courier New', monospace" font-size="22" fill="#ffffff" text-anchor="middle" class="formula">
+                    + γ|10⟩ + δ|11⟩
+                </text>
+                
+                <!-- Normalización -->
+                <text x="710" y="330" font-family="'Times New Roman', serif" font-size="16" fill="#fed7aa" text-anchor="middle" font-style="italic">
+                    Normalización:
+                </text>
+                <text x="710" y="355" font-family="'Courier New', monospace" font-size="20" fill="#fbbf24" text-anchor="middle" class="formula">
+                    |α|² + |β|² + |γ|² + |δ|² = 1
+                </text>
+            </g>
+            
+            <!-- SECCIÓN 3: Producto Tensorial -->
+            <g filter="url(#shadow)" class="interactive-section" data-section="producto-tensorial">
+                <rect x="940" y="150" width="380" height="220" rx="15" fill="url(#cardGrad3)" stroke="#4ade80" stroke-width="2" class="section-bg"/>
+                
+                <text x="1130" y="185" font-family="'Times New Roman', serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+                    3. PRODUCTO TENSORIAL
+                </text>
+                
+                <line x1="970" y1="200" x2="1290" y2="200" stroke="#4ade80" stroke-width="1" opacity="0.5"/>
+                
+                <!-- Estados individuales -->
+                <text x="1130" y="235" font-family="'Courier New', monospace" font-size="20" fill="#d1fae5" text-anchor="middle" class="formula">
+                    |ψ₁⟩ = a|0⟩ + b|1⟩
+                </text>
+                <text x="1130" y="262" font-family="'Courier New', monospace" font-size="20" fill="#d1fae5" text-anchor="middle" class="formula">
+                    |ψ₂⟩ = c|0⟩ + d|1⟩
+                </text>
+                
+                <!-- Producto -->
+                <text x="1130" y="295" font-family="'Times New Roman', serif" font-size="18" fill="#ffffff" text-anchor="middle" font-weight="bold">
+                    |Ψ⟩ = |ψ₁⟩ ⊗ |ψ₂⟩ =
+                </text>
+                <text x="1130" y="325" font-family="'Courier New', monospace" font-size="18" fill="#ffffff" text-anchor="middle" class="formula">
+                    ac|00⟩ + ad|01⟩
+                </text>
+                <text x="1130" y="350" font-family="'Courier New', monospace" font-size="18" fill="#ffffff" text-anchor="middle" class="formula">
+                    + bc|10⟩ + bd|11⟩
+                </text>
+            </g>
+            
+            <!-- SECCIÓN INFERIOR: Propiedades Fundamentales -->
+            <g filter="url(#shadow)" class="interactive-section" data-section="propiedades">
+                <rect x="80" y="400" width="1240" height="450" rx="15" fill="#1e293b" fill-opacity="0.95" stroke="#475569" stroke-width="2" class="section-bg"/>
+                
+                <text x="700" y="440" font-family="'Times New Roman', serif" font-size="28" font-weight="bold" fill="#ffffff" text-anchor="middle">
+                    PROPIEDADES FUNDAMENTALES DE LA NOTACIÓN BRA-KET
+                </text>
+                
+                <line x1="120" y1="455" x2="1280" y2="455" stroke="#475569" stroke-width="1"/>
+                
+                <!-- Columna 1 -->
+                <g class="interactive-element" data-info="amplitudes">
+                    <text x="140" y="495" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#60a5fa">
+                        ▸ Amplitudes Complejas
+                    </text>
+                    <text x="160" y="520" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Las amplitudes α, β, γ, δ son números
+                    </text>
+                    <text x="160" y="540" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        complejos: α ∈ ℂ
+                    </text>
+                    <text x="160" y="560" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Representan la "probabilidad cuántica"
+                    </text>
+                    <text x="160" y="580" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        de cada estado base
+                    </text>
+                </g>
+                
+                <!-- Columna 2 -->
+                <g class="interactive-element" data-info="normalizacion">
+                    <text x="140" y="625" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#fb923c">
+                        ▸ Normalización
+                    </text>
+                    <text x="160" y="650" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        La suma de las probabilidades debe
+                    </text>
+                    <text x="160" y="670" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        ser siempre igual a 1
+                    </text>
+                    <text x="160" y="690" font-family="'Courier New', monospace" font-size="16" fill="#fbbf24">
+                        Σᵢ |αᵢ|² = 1
+                    </text>
+                    <text x="160" y="710" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Garantiza conservación de probabilidad
+                    </text>
+                </g>
+                
+                <!-- Columna 3 -->
+                <g class="interactive-element" data-info="superposicion">
+                    <text x="140" y="755" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#4ade80">
+                        ▸ Superposición Cuántica
+                    </text>
+                    <text x="160" y="780" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Un cúbit puede estar en múltiples
+                    </text>
+                    <text x="160" y="800" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        estados simultáneamente hasta que
+                    </text>
+                    <text x="160" y="820" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        se realice una medición
+                    </text>
+                </g>
+                
+                <!-- Columna 4 -->
+                <g class="interactive-element" data-info="producto-tensorial">
+                    <text x="720" y="495" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#60a5fa">
+                        ▸ Producto Tensorial
+                    </text>
+                    <text x="740" y="520" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Combina sistemas cuánticos independientes
+                    </text>
+                    <text x="740" y="540" font-family="'Courier New', monospace" font-size="16" fill="#94a3b8">
+                        (a|0⟩ + b|1⟩) ⊗ (c|0⟩ + d|1⟩)
+                    </text>
+                    <text x="740" y="560" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Expande dimensionalmente el espacio
+                    </text>
+                    <text x="740" y="580" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        de estados: 2ⁿ dimensiones para n cúbits
+                    </text>
+                </g>
+                
+                <!-- Columna 5 -->
+                <g class="interactive-element" data-info="medicion">
+                    <text x="720" y="625" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#fb923c">
+                        ▸ Medición Cuántica
+                    </text>
+                    <text x="740" y="650" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Probabilidad de medir estado |i⟩:
+                    </text>
+                    <text x="740" y="670" font-family="'Courier New', monospace" font-size="16" fill="#fbbf24">
+                        P(i) = |αᵢ|²
+                    </text>
+                    <text x="740" y="690" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Regla de Born: el módulo cuadrado de
+                    </text>
+                    <text x="740" y="710" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        la amplitud da la probabilidad clásica
+                    </text>
+                </g>
+                
+                <!-- Columna 6 -->
+                <g class="interactive-element" data-info="entrelazamiento">
+                    <text x="720" y="755" font-family="'Times New Roman', serif" font-size="20" font-weight="bold" fill="#4ade80">
+                        ▸ Entrelazamiento Cuántico
+                    </text>
+                    <text x="740" y="780" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Estados que no pueden factorizarse:
+                    </text>
+                    <text x="740" y="800" font-family="'Courier New', monospace" font-size="15" fill="#a7f3d0">
+                        |Ψ⟩ = (|00⟩ + |11⟩)/√2  (Estado de Bell)
+                    </text>
+                    <text x="740" y="820" font-family="'Times New Roman', serif" font-size="16" fill="#cbd5e1">
+                        Correlaciones cuánticas fundamentales
+                    </text>
+                </g>
+            </g>
+            
+            <!-- SECCIÓN DE CIENTÍFICOS DESTACADOS -->
+            <g filter="url(#shadow)" class="interactive-section" data-section="cientificos">
+                <rect x="80" y="875" width="1240" height="180" rx="15" fill="#0f172a" fill-opacity="0.98" stroke="#334155" stroke-width="2" class="section-bg"/>
+                
+                <text x="700" y="910" font-family="'Times New Roman', serif" font-size="24" font-weight="bold" fill="#ffffff" text-anchor="middle">
+                    PIONEROS DE LA MECÁNICA CUÁNTICA Y COMPUTACIÓN CUÁNTICA
+                </text>
+                
+                <line x1="120" y1="925" x2="1280" y2="925" stroke="#334155" stroke-width="1"/>
+                
+                <!-- Paul Dirac -->
+                <g class="interactive-element" data-info="dirac">
+                    <circle cx="200" cy="990" r="45" fill="#1e293b" stroke="#60a5fa" stroke-width="2"/>
+                    <text x="200" y="995" font-family="'Times New Roman', serif" font-size="32" fill="#60a5fa" text-anchor="middle" font-weight="bold">
+                        PAD
+                    </text>
+                    <text x="200" y="1030" font-family="'Times New Roman', serif" font-size="14" fill="#e2e8f0" text-anchor="middle" font-weight="bold">
+                        Paul Dirac
+                    </text>
+                    <text x="200" y="1045" font-family="'Times New Roman', serif" font-size="11" fill="#94a3b8" text-anchor="middle">
+                        1902-1984
+                    </text>
+                    <text x="290" y="985" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Creador de la notación
+                    </text>
+                    <text x="290" y="1000" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Bra-Ket (1939)
+                    </text>
+                    <text x="290" y="1015" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Premio Nobel 1933
+                    </text>
+                </g>
+                
+                <!-- Richard Feynman -->
+                <g class="interactive-element" data-info="feynman">
+                    <circle cx="480" cy="990" r="45" fill="#1e293b" stroke="#fb923c" stroke-width="2"/>
+                    <text x="480" cy="995" font-family="'Times New Roman', serif" font-size="32" fill="#fb923c" text-anchor="middle" font-weight="bold">
+                        RPF
+                    </text>
+                    <text x="480" y="1030" font-family="'Times New Roman', serif" font-size="14" fill="#e2e8f0" text-anchor="middle" font-weight="bold">
+                        Richard Feynman
+                    </text>
+                    <text x="480" y="1045" font-family="'Times New Roman', serif" font-size="11" fill="#94a3b8" text-anchor="middle">
+                        1918-1988
+                    </text>
+                    <text x="570" y="985" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Propuso computación
+                    </text>
+                    <text x="570" y="1000" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        cuántica (1982)
+                    </text>
+                    <text x="570" y="1015" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Premio Nobel 1965
+                    </text>
+                </g>
+                
+                <!-- Peter Shor -->
+                <g class="interactive-element" data-info="shor">
+                    <circle cx="760" cy="990" r="45" fill="#1e293b" stroke="#4ade80" stroke-width="2"/>
+                    <text x="760" cy="995" font-family="'Times New Roman', serif" font-size="32" fill="#4ade80" text-anchor="middle" font-weight="bold">
+                        PWS
+                    </text>
+                    <text x="760" y="1030" font-family="'Times New Roman', serif" font-size="14" fill="#e2e8f0" text-anchor="middle" font-weight="bold">
+                        Peter Shor
+                    </text>
+                    <text x="760" y="1045" font-family="'Times New Roman', serif" font-size="11" fill="#94a3b8" text-anchor="middle">
+                        1959-presente
+                    </text>
+                    <text x="850" y="985" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Algoritmo de Shor
+                    </text>
+                    <text x="850" y="1000" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Factorización (1994)
+                    </text>
+                    <text x="850" y="1015" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Gödel Prize 1999
+                    </text>
+                </g>
+                
+                <!-- David Deutsch -->
+                <g class="interactive-element" data-info="deutsch">
+                    <circle cx="1040" cy="990" r="45" fill="#1e293b" stroke="#a78bfa" stroke-width="2"/>
+                    <text x="1040" cy="995" font-family="'Times New Roman', serif" font-size="32" fill="#a78bfa" text-anchor="middle" font-weight="bold">
+                        DD
+                    </text>
+                    <text x="1040" y="1030" font-family="'Times New Roman', serif" font-size="14" fill="#e2e8f0" text-anchor="middle" font-weight="bold">
+                        David Deutsch
+                    </text>
+                    <text x="1040" y="1045" font-family="'Times New Roman', serif" font-size="11" fill="#94a3b8" text-anchor="middle">
+                        1953-presente
+                    </text>
+                    <text x="1130" y="985" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Computadora cuántica
+                    </text>
+                    <text x="1130" y="1000" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        universal (1985)
+                    </text>
+                    <text x="1130" y="1015" font-family="'Times New Roman', serif" font-size="13" fill="#cbd5e1" text-anchor="start">
+                        Dirac Medal 1998
+                    </text>
+                </g>
+            </g>
+            
+            <!-- Nota al pie actualizada -->
+            <text x="700" y="1080" font-family="'Times New Roman', serif" font-size="13" fill="#64748b" text-anchor="middle" font-style="italic">
+                Notación estándar según los principios de Dirac | Fundamentos de Mecánica Cuántica y Computación Cuántica
+            </text>
+        </svg>
+        
+        <div class="tooltip" id="tooltip"></div>
+    </div>
+
+    <script>
+        // Información para tooltips
+        const tooltipInfo = {
+            'amplitudes': 'Las amplitudes complejas son números con partes real e imaginaria. Su módulo cuadrado representa la probabilidad de encontrar el sistema en ese estado particular al realizar una medición.',
+            'normalizacion': 'La condición de normalización asegura que la probabilidad total de encontrar el sistema en algún estado sea exactamente 1, lo que corresponde a la certeza de que el sistema existe en alguno de sus estados posibles.',
+            'superposicion': 'La superposición es un principio fundamental de la mecánica cuántica que permite a un sistema existir en múltiples estados a la vez, a diferencia de los sistemas clásicos que solo pueden estar en un estado definido.',
+            'producto-tensorial': 'El producto tensorial es la operación matemática que combina espacios vectoriales. En computación cuántica, permite describir sistemas compuestos por múltiples cúbits.',
+            'medicion': 'La medición cuántica colapsa el estado superpuesto a uno de los estados base. La probabilidad de cada resultado está dada por el cuadrado del módulo de la amplitud correspondiente (Regla de Born).',
+            'entrelazamiento': 'El entrelazamiento crea correlaciones entre partículas que persisten incluso cuando están separadas. Es un recurso fundamental para la computación y comunicación cuántica.',
+            'dirac': 'Paul Dirac fue un físico teórico británico que hizo contribuciones fundamentales a la mecánica cuántica. Introdujo la notación bra-ket en 1939 en su libro "The Principles of Quantum Mechanics".',
+            'feynman': 'Richard Feynman fue un físico teórico estadounidense conocido por su trabajo en electrodinámica cuántica. Propuso el concepto de computación cuántica en 1982.',
+            'shor': 'Peter Shor es un profesor de matemáticas en el MIT. Es conocido por el algoritmo de Shor, que permite factorizar números grandes exponencialmente más rápido que los mejores algoritmos clásicos.',
+            'deutsch': 'David Deutsch es un físico en la Universidad de Oxford. Propuso el concepto de computadora cuántica universal y sentó las bases teóricas para el desarrollo de algoritmos cuánticos.'
+        };
+        
+        // Configuración de interactividad
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltip = document.getElementById('tooltip');
+            const interactiveElements = document.querySelectorAll('.interactive-element');
+            
+            // Añadir eventos para tooltips
+            interactiveElements.forEach(element => {
+                const infoKey = element.getAttribute('data-info');
+                
+                element.addEventListener('mouseenter', function(e) {
+                    const rect = element.getBoundingClientRect();
+                    tooltip.innerHTML = tooltipInfo[infoKey] || 'Información no disponible';
+                    tooltip.style.left = (rect.left + window.scrollX) + 'px';
+                    tooltip.style.top = (rect.top + window.scrollY - tooltip.offsetHeight - 10) + 'px';
+                    tooltip.style.opacity = '1';
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    tooltip.style.opacity = '0';
+                });
+            });
+            
+            // Añadir eventos para secciones interactivas
+            const sections = document.querySelectorAll('.interactive-section');
+            sections.forEach(section => {
+                section.addEventListener('click', function() {
+                    const sectionType = this.getAttribute('data-section');
+                    highlightSection(this);
+                    // Aquí podrías añadir más funcionalidades como expandir la sección
+                });
+            });
+            
+            // Inicializar animaciones
+            initAnimations();
+        });
+        
+        // Funciones de control
+        function toggleAnimations() {
+            const svg = document.getElementById('quantum-svg');
+            svg.classList.toggle('animations-paused');
+            alert('Animaciones ' + (svg.classList.contains('animations-paused') ? 'pausadas' : 'activadas'));
+        }
+        
+        function resetView() {
+            // Restablecer cualquier transformación aplicada
+            const svg = document.getElementById('quantum-svg');
+            svg.style.transform = 'scale(1)';
+            alert('Vista restablecida');
+        }
+        
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-mode');
+            alert('Modo ' + (document.body.classList.contains('light-mode') ? 'claro' : 'oscuro') + ' activado');
+        }
+        
+        function highlightSection(section) {
+            // Quitar highlight de todas las secciones
+            document.querySelectorAll('.interactive-section').forEach(s => {
+                s.style.filter = '';
+            });
+            
+            // Aplicar highlight a la sección seleccionada
+            section.style.filter = 'url(#glow)';
+            
+            // Quitar el highlight después de un tiempo
+            setTimeout(() => {
+                section.style.filter = '';
+            }, 2000);
+        }
+        
+        function initAnimations() {
+            // Las animaciones CSS se aplican automáticamente a través de las clases
+            console.log('Animaciones inicializadas');
+        }
+        
+        // Añadir estilos CSS para animaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            .pulse-animation {
+                animation: pulse 4s infinite ease-in-out;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 0.05; }
+                50% { opacity: 0.2; }
+            }
+            
+            .formula {
+                transition: all 0.3s ease;
+            }
+            
+            .formula:hover {
+                filter: url(#glow);
+                transform: scale(1.05);
+            }
+            
+            .interactive-section {
+                cursor: pointer;
+                transition: transform 0.3s ease;
+            }
+            
+            .interactive-section:hover {
+                transform: translateY(-5px);
+            }
+            
+            .interactive-element {
+                cursor: help;
+                transition: opacity 0.3s ease;
+            }
+            
+            .interactive-element:hover {
+                opacity: 0.9;
+            }
+            
+            .light-mode .background {
+                fill: url(#bgGradLight);
+            }
+            
+            .light-mode .main-title,
+            .light-mode .subtitle {
+                fill: #1e293b;
+            }
+            
+            .animations-paused .pulse-animation {
+                animation: none;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

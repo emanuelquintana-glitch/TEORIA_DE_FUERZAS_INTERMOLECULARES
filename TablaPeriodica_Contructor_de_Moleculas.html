@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Constructor Molecular Infinito</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(180deg, rgba(0,217,255,0.1) 0%, rgba(157,78,221,0.1) 100%);
+            border-bottom: 2px solid #00D9FF;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00D9FF, #9D4EDD, #06FFA5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .builder-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .panel {
+            background: rgba(10,14,39,0.8);
+            border: 2px solid rgba(0,217,255,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-title {
+            font-size: 1.3em;
+            color: #00F5FF;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgba(0,217,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            gap: 3px;
+            margin-bottom: 20px;
+        }
+
+        .element-btn {
+            background: rgba(0, 217, 255, 0.2);
+            border: 1px solid rgba(0, 217, 255, 0.4);
+            border-radius: 5px;
+            color: white;
+            padding: 8px 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+            font-size: 0.75em;
+            text-align: center;
+        }
+
+        .element-btn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 15px currentColor;
+            border-color: #00F5FF;
+            z-index: 10;
+        }
+
+        .element-symbol {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        #molecule-canvas {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0,20,40,0.5), rgba(10,5,30,0.5));
+            border: 1px solid rgba(0,217,255,0.2);
+        }
+
+        .selected-atoms {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .atom-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0,217,255,0.1);
+            border-radius: 5px;
+            border: 1px solid rgba(0,217,255,0.3);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, rgba(0,217,255,0.2), rgba(157,78,221,0.2));
+            border: 2px solid rgba(0,217,255,0.5);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,217,255,0.4);
+            border-color: #00D9FF;
+        }
+
+        .btn-build {
+            background: linear-gradient(135deg, #06FFA5, #9D4EDD);
+            border-color: #06FFA5;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Courier New', monospace;
+        }
+
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .property-label {
+            color: #aaa;
+        }
+
+        .property-value {
+            color: #00F5FF;
+            font-weight: bold;
+        }
+
+        .quick-molecules {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .quick-btn {
+            background: rgba(157,78,221,0.2);
+            border: 1px solid rgba(157,78,221,0.5);
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: rgba(157,78,221,0.4);
+            transform: scale(1.05);
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            font-size: 0.8em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 217, 255, 0.5);
+            border-radius: 4px;
+        }
+        
+        .element-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-size: 0.9em;
+        }
+        
+        .element-details h3 {
+            color: #00D9FF;
+            margin-bottom: 10px;
+        }
+        
+        .element-details p {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #00D9FF;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 CONSTRUCTOR MOLECULAR INFINITO</h1>
+        <p style="color: #00F5FF; font-size: 1.2em;">Tabla Periódica Completa | 118 Elementos</p>
+    </div>
+
+    <div class="container">
+        <div class="builder-container">
+            <!-- Panel Izquierdo: Tabla Periódica y Canvas -->
+            <div>
+                <div class="panel">
+                    <div class="panel-title">📊 Tabla Periódica Interactiva</div>
+                    <div class="legend">
+                        <div class="legend-item"><div class="legend-color" style="background: #3050F8;"></div> No metales</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #8F40D4;"></div> Alcalinos</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #00FF00;"></div> Alcalinotérreos</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #BFC2C7;"></div> Transición</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #5CB8D1;"></div> Gases nobles</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #FFB5B5;"></div> Metaloides</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #BFA6A6;"></div> Metales</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #FFB5B5;"></div> Lantánidos</div>
+                        <div class="legend-item"><div class="legend-color" style="background: #FFB5B5;"></div> Actínidos</div>
+                    </div>
+                    <div id="periodic-table" class="periodic-table">
+                        <div class="loading">Cargando tabla periódica...</div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <div class="panel-title">🧪 Moléculas Rápidas</div>
+                    <div class="quick-molecules" id="quick-molecules"></div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <div class="panel-title">🎨 Visualización 3D</div>
+                    <div id="molecule-canvas"></div>
+                </div>
+            </div>
+
+            <!-- Panel Derecho: Constructor -->
+            <div>
+                <div class="panel">
+                    <div class="panel-title">⚛️ Átomos Seleccionados</div>
+                    <div class="selected-atoms" id="selected-atoms">
+                        <p style="color: #aaa; text-align: center; padding: 20px;">
+                            Haz clic en los elementos de la tabla periódica
+                        </p>
+                    </div>
+                    <button class="btn" id="clear-btn">🗑️ Limpiar Todo</button>
+                </div>
+
+                <div class="panel" style="margin-top: 15px;">
+                    <div class="panel-title">📐 Geometría Molecular</div>
+                    <select id="geometry-select">
+                        <option value="linear">Lineal</option>
+                        <option value="bent">Angular (Bent)</option>
+                        <option value="trigonal">Trigonal Plana</option>
+                        <option value="tetrahedral">Tetraédrica</option>
+                        <option value="pyramidal">Pirámide Trigonal</option>
+                        <option value="octahedral">Octaédrica</option>
+                        <option value="ring">Anillo</option>
+                        <option value="custom">Personalizada</option>
+                    </select>
+                    <button class="btn btn-build" id="build-btn">✨ Construir Molécula</button>
+                </div>
+
+                <div class="panel" style="margin-top: 15px;">
+                    <div class="panel-title">📈 Propiedades Calculadas</div>
+                    <div id="properties"></div>
+                </div>
+                
+                <div class="panel" style="margin-top: 15px;">
+                    <div class="panel-title">ℹ️ Información del Elemento</div>
+                    <div id="element-info">
+                        <p style="color: #aaa; text-align: center;">Selecciona un elemento para ver su información</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let elementsData = [];
+        let selectedAtoms = [];
+        let scene, camera, renderer, moleculeGroup;
+        let currentElementInfo = null;
+
+        // Categorías y colores
+        const categoryColors = {
+            'diatomic nonmetal': 'rgba(48, 80, 248, 0.3)',
+            'noble gas': 'rgba(92, 184, 209, 0.3)',
+            'alkali metal': 'rgba(143, 64, 212, 0.3)',
+            'alkaline earth metal': 'rgba(0, 255, 0, 0.3)',
+            'transition metal': 'rgba(191, 194, 199, 0.3)',
+            'metalloid': 'rgba(255, 181, 181, 0.3)',
+            'post-transition metal': 'rgba(166, 117, 115, 0.3)',
+            'polyatomic nonmetal': 'rgba(48, 80, 248, 0.3)',
+            'actinide': 'rgba(255, 105, 180, 0.3)',
+            'lanthanide': 'rgba(255, 165, 0, 0.3)'
+        };
+
+        // Datos de elementos (118 elementos)
+        const periodicData = {
+            "elements": [
+                {"name":"Hydrogen","atomic_mass":1.008,"boil":20.271,"category":"diatomic nonmetal","density":0.08988,"discovered_by":"Henry Cavendish","melt":13.99,"number":1,"period":1,"group":1,"phase":"Gas","symbol":"H","xpos":1,"ypos":1,"electron_configuration":"1s1","electronegativity_pauling":2.2,"cpk-hex":"ffffff","block":"s"},
+                {"name":"Helium","atomic_mass":4.0026022,"boil":4.222,"category":"noble gas","density":0.1786,"discovered_by":"Pierre Janssen","melt":0.95,"number":2,"period":1,"group":18,"phase":"Gas","symbol":"He","xpos":18,"ypos":1,"electron_configuration":"1s2","electronegativity_pauling":null,"cpk-hex":"d9ffff","block":"s"},
+                {"name":"Lithium","atomic_mass":6.94,"boil":1603,"category":"alkali metal","density":0.534,"discovered_by":"Johan August Arfwedson","melt":453.65,"number":3,"period":2,"group":1,"phase":"Solid","symbol":"Li","xpos":1,"ypos":2,"electron_configuration":"1s2 2s1","electronegativity_pauling":0.98,"cpk-hex":"cc80ff","block":"s"},
+                {"name":"Beryllium","atomic_mass":9.01218315,"boil":2742,"category":"alkaline earth metal","density":1.85,"discovered_by":"Louis Nicolas Vauquelin","melt":1560,"number":4,"period":2,"group":2,"phase":"Solid","symbol":"Be","xpos":2,"ypos":2,"electron_configuration":"1s2 2s2","electronegativity_pauling":1.57,"cpk-hex":"c2ff00","block":"s"},
+                {"name":"Boron","atomic_mass":10.81,"boil":4200,"category":"metalloid","density":2.08,"discovered_by":"Joseph Louis Gay-Lussac","melt":2349,"number":5,"period":2,"group":13,"phase":"Solid","symbol":"B","xpos":13,"ypos":2,"electron_configuration":"1s2 2s2 2p1","electronegativity_pauling":2.04,"cpk-hex":"ffb5b5","block":"p"},
+                {"name":"Carbon","atomic_mass":12.011,"boil":null,"category":"polyatomic nonmetal","density":1.821,"discovered_by":"Ancient Egypt","melt":null,"number":6,"period":2,"group":14,"phase":"Solid","symbol":"C","xpos":14,"ypos":2,"electron_configuration":"1s2 2s2 2p2","electronegativity_pauling":2.55,"cpk-hex":"909090","block":"p"},
+                {"name":"Nitrogen","atomic_mass":14.007,"boil":77.355,"category":"diatomic nonmetal","density":1.251,"discovered_by":"Daniel Rutherford","melt":63.15,"number":7,"period":2,"group":15,"phase":"Gas","symbol":"N","xpos":15,"ypos":2,"electron_configuration":"1s2 2s2 2p3","electronegativity_pauling":3.04,"cpk-hex":"3050f8","block":"p"},
+                {"name":"Oxygen","atomic_mass":15.999,"boil":90.188,"category":"diatomic nonmetal","density":1.429,"discovered_by":"Carl Wilhelm Scheele","melt":54.36,"number":8,"period":2,"group":16,"phase":"Gas","symbol":"O","xpos":16,"ypos":2,"electron_configuration":"1s2 2s2 2p4","electronegativity_pauling":3.44,"cpk-hex":"ff0d0d","block":"p"},
+                {"name":"Fluorine","atomic_mass":18.9984031636,"boil":85.03,"category":"diatomic nonmetal","density":1.696,"discovered_by":"André-Marie Ampère","melt":53.48,"number":9,"period":2,"group":17,"phase":"Gas","symbol":"F","xpos":17,"ypos":2,"electron_configuration":"1s2 2s2 2p5","electronegativity_pauling":3.98,"cpk-hex":"90e050","block":"p"},
+                {"name":"Neon","atomic_mass":20.17976,"boil":27.104,"category":"noble gas","density":0.9002,"discovered_by":"Morris Travers","melt":24.56,"number":10,"period":2,"group":18,"phase":"Gas","symbol":"Ne","xpos":18,"ypos":2,"electron_configuration":"1s2 2s2 2p6","electronegativity_pauling":null,"cpk-hex":"b3e3f5","block":"p"},
+                {"name":"Sodium","atomic_mass":22.989769282,"boil":1156.09,"category":"alkali metal","density":0.968,"discovered_by":"Humphry Davy","melt":370.944,"number":11,"period":3,"group":1,"phase":"Solid","symbol":"Na","xpos":1,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s1","electronegativity_pauling":0.93,"cpk-hex":"ab5cf2","block":"s"},
+                {"name":"Magnesium","atomic_mass":24.305,"boil":1363,"category":"alkaline earth metal","density":1.738,"discovered_by":"Joseph Black","melt":923,"number":12,"period":3,"group":2,"phase":"Solid","symbol":"Mg","xpos":2,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2","electronegativity_pauling":1.31,"cpk-hex":"8aff00","block":"s"},
+                {"name":"Aluminium","atomic_mass":26.98153857,"boil":2743,"category":"post-transition metal","density":2.7,"discovered_by":null,"melt":933.47,"number":13,"period":3,"group":13,"phase":"Solid","symbol":"Al","xpos":13,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p1","electronegativity_pauling":1.61,"cpk-hex":"bfa6a6","block":"p"},
+                {"name":"Silicon","atomic_mass":28.085,"boil":3538,"category":"metalloid","density":2.329,"discovered_by":"Jöns Jacob Berzelius","melt":1687,"number":14,"period":3,"group":14,"phase":"Solid","symbol":"Si","xpos":14,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p2","electronegativity_pauling":1.9,"cpk-hex":"f0c8a0","block":"p"},
+                {"name":"Phosphorus","atomic_mass":30.9737619985,"boil":null,"category":"polyatomic nonmetal","density":1.823,"discovered_by":"Hennig Brand","melt":null,"number":15,"period":3,"group":15,"phase":"Solid","symbol":"P","xpos":15,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p3","electronegativity_pauling":2.19,"cpk-hex":"ff8000","block":"p"},
+                {"name":"Sulfur","atomic_mass":32.06,"boil":717.8,"category":"polyatomic nonmetal","density":2.07,"discovered_by":"Ancient china","melt":388.36,"number":16,"period":3,"group":16,"phase":"Solid","symbol":"S","xpos":16,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p4","electronegativity_pauling":2.58,"cpk-hex":"ffff30","block":"p"},
+                {"name":"Chlorine","atomic_mass":35.45,"boil":239.11,"category":"diatomic nonmetal","density":3.2,"discovered_by":"Carl Wilhelm Scheele","melt":171.6,"number":17,"period":3,"group":17,"phase":"Gas","symbol":"Cl","xpos":17,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p5","electronegativity_pauling":3.16,"cpk-hex":"1ff01f","block":"p"},
+                {"name":"Argon","atomic_mass":39.9481,"boil":87.302,"category":"noble gas","density":1.784,"discovered_by":"Lord Rayleigh","melt":83.81,"number":18,"period":3,"group":18,"phase":"Gas","symbol":"Ar","xpos":18,"ypos":3,"electron_configuration":"1s2 2s2 2p6 3s2 3p6","electronegativity_pauling":null,"cpk-hex":"80d1e3","block":"p"},
+                {"name":"Potassium","atomic_mass":39.09831,"boil":1032,"category":"alkali metal","density":0.862,"discovered_by":"Humphry Davy","melt":336.7,"number":19,"period":4,"group":1,"phase":"Solid","symbol":"K","xpos":1,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s1","electronegativity_pauling":0.82,"cpk-hex":"8f40d4","block":"s"},
+                {"name":"Calcium","atomic_mass":40.0784,"boil":1757,"category":"alkaline earth metal","density":1.55,"discovered_by":"Humphry Davy","melt":1115,"number":20,"period":4,"group":2,"phase":"Solid","symbol":"Ca","xpos":2,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2","electronegativity_pauling":1,"cpk-hex":"3dff00","block":"s"},
+                {"name":"Scandium","atomic_mass":44.9559085,"boil":3109,"category":"transition metal","density":2.985,"discovered_by":"Lars Fredrik Nilson","melt":1814,"number":21,"period":4,"group":3,"phase":"Solid","symbol":"Sc","xpos":3,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d1","electronegativity_pauling":1.36,"cpk-hex":"e6e6e6","block":"d"},
+                {"name":"Titanium","atomic_mass":47.8671,"boil":3560,"category":"transition metal","density":4.506,"discovered_by":"William Gregor","melt":1941,"number":22,"period":4,"group":4,"phase":"Solid","symbol":"Ti","xpos":4,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d2","electronegativity_pauling":1.54,"cpk-hex":"bfc2c7","block":"d"},
+                {"name":"Vanadium","atomic_mass":50.94151,"boil":3680,"category":"transition metal","density":6,"discovered_by":"Andrés Manuel del Río","melt":2183,"number":23,"period":4,"group":5,"phase":"Solid","symbol":"V","xpos":5,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d3","electronegativity_pauling":1.63,"cpk-hex":"a6a6ab","block":"d"},
+                {"name":"Chromium","atomic_mass":51.99616,"boil":2944,"category":"transition metal","density":7.19,"discovered_by":"Louis Nicolas Vauquelin","melt":2180,"number":24,"period":4,"group":6,"phase":"Solid","symbol":"Cr","xpos":6,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s1 3d5","electronegativity_pauling":1.66,"cpk-hex":"8a99c7","block":"d"},
+                {"name":"Manganese","atomic_mass":54.9380443,"boil":2334,"category":"transition metal","density":7.21,"discovered_by":"Torbern Olof Bergman","melt":1519,"number":25,"period":4,"group":7,"phase":"Solid","symbol":"Mn","xpos":7,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d5","electronegativity_pauling":1.55,"cpk-hex":"9c7ac7","block":"d"},
+                {"name":"Iron","atomic_mass":55.8452,"boil":3134,"category":"transition metal","density":7.874,"discovered_by":"5000 BC","melt":1811,"number":26,"period":4,"group":8,"phase":"Solid","symbol":"Fe","xpos":8,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d6","electronegativity_pauling":1.83,"cpk-hex":"e06633","block":"d"},
+                {"name":"Cobalt","atomic_mass":58.9331944,"boil":3200,"category":"transition metal","density":8.9,"discovered_by":"Georg Brandt","melt":1768,"number":27,"period":4,"group":9,"phase":"Solid","symbol":"Co","xpos":9,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d7","electronegativity_pauling":1.88,"cpk-hex":"f090a0","block":"d"},
+                {"name":"Nickel","atomic_mass":58.69344,"boil":3003,"category":"transition metal","density":8.908,"discovered_by":"Axel Fredrik Cronstedt","melt":1728,"number":28,"period":4,"group":10,"phase":"Solid","symbol":"Ni","xpos":10,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d8","electronegativity_pauling":1.91,"cpk-hex":"50d050","block":"d"},
+                {"name":"Copper","atomic_mass":63.5463,"boil":2835,"category":"transition metal","density":8.96,"discovered_by":"Middle East","melt":1357.77,"number":29,"period":4,"group":11,"phase":"Solid","symbol":"Cu","xpos":11,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s1 3d10","electronegativity_pauling":1.9,"cpk-hex":"c88033","block":"d"},
+                {"name":"Zinc","atomic_mass":65.382,"boil":1180,"category":"transition metal","density":7.14,"discovered_by":"India","melt":692.68,"number":30,"period":4,"group":12,"phase":"Solid","symbol":"Zn","xpos":12,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10","electronegativity_pauling":1.65,"cpk-hex":"7d80b0","block":"d"},
+                {"name":"Gallium","atomic_mass":69.7231,"boil":2673,"category":"post-transition metal","density":5.91,"discovered_by":"Lecoq de Boisbaudran","melt":302.9146,"number":31,"period":4,"group":13,"phase":"Solid","symbol":"Ga","xpos":13,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p1","electronegativity_pauling":1.81,"cpk-hex":"c28f8f","block":"p"},
+                {"name":"Germanium","atomic_mass":72.6308,"boil":3106,"category":"metalloid","density":5.323,"discovered_by":"Clemens Winkler","melt":1211.4,"number":32,"period":4,"group":14,"phase":"Solid","symbol":"Ge","xpos":14,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p2","electronegativity_pauling":2.01,"cpk-hex":"668f8f","block":"p"},
+                {"name":"Arsenic","atomic_mass":74.9215956,"boil":null,"category":"metalloid","density":5.727,"discovered_by":"Bronze Age","melt":null,"number":33,"period":4,"group":15,"phase":"Solid","symbol":"As","xpos":15,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p3","electronegativity_pauling":2.18,"cpk-hex":"bd80e3","block":"p"},
+                {"name":"Selenium","atomic_mass":78.9718,"boil":958,"category":"polyatomic nonmetal","density":4.81,"discovered_by":"Jöns Jakob Berzelius","melt":494,"number":34,"period":4,"group":16,"phase":"Solid","symbol":"Se","xpos":16,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p4","electronegativity_pauling":2.55,"cpk-hex":"ffa100","block":"p"},
+                {"name":"Bromine","atomic_mass":79.904,"boil":332,"category":"diatomic nonmetal","density":3.1028,"discovered_by":"Antoine Jérôme Balard","melt":265.8,"number":35,"period":4,"group":17,"phase":"Liquid","symbol":"Br","xpos":17,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p5","electronegativity_pauling":2.96,"cpk-hex":"a62929","block":"p"},
+                {"name":"Krypton","atomic_mass":83.7982,"boil":119.93,"category":"noble gas","density":3.749,"discovered_by":"William Ramsay","melt":115.78,"number":36,"period":4,"group":18,"phase":"Gas","symbol":"Kr","xpos":18,"ypos":4,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6","electronegativity_pauling":3,"cpk-hex":"5cb8d1","block":"p"},
+                {"name":"Rubidium","atomic_mass":85.46783,"boil":961,"category":"alkali metal","density":1.532,"discovered_by":"Robert Bunsen","melt":312.45,"number":37,"period":5,"group":1,"phase":"Solid","symbol":"Rb","xpos":1,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1","electronegativity_pauling":0.82,"cpk-hex":"702eb0","block":"s"},
+                {"name":"Strontium","atomic_mass":87.621,"boil":1650,"category":"alkaline earth metal","density":2.64,"discovered_by":"William Cruickshank","melt":1050,"number":38,"period":5,"group":2,"phase":"Solid","symbol":"Sr","xpos":2,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2","electronegativity_pauling":0.95,"cpk-hex":"00ff00","block":"s"},
+                {"name":"Yttrium","atomic_mass":88.905842,"boil":3203,"category":"transition metal","density":4.472,"discovered_by":"Johan Gadolin","melt":1799,"number":39,"period":5,"group":3,"phase":"Solid","symbol":"Y","xpos":3,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d1","electronegativity_pauling":1.22,"cpk-hex":"94ffff","block":"d"},
+                {"name":"Zirconium","atomic_mass":91.2242,"boil":4650,"category":"transition metal","density":6.52,"discovered_by":"Martin Heinrich Klaproth","melt":2128,"number":40,"period":5,"group":4,"phase":"Solid","symbol":"Zr","xpos":4,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d2","electronegativity_pauling":1.33,"cpk-hex":"94e0e0","block":"d"},
+                {"name":"Niobium","atomic_mass":92.906372,"boil":5017,"category":"transition metal","density":8.57,"discovered_by":"Charles Hatchett","melt":2750,"number":41,"period":5,"group":5,"phase":"Solid","symbol":"Nb","xpos":5,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d4","electronegativity_pauling":1.6,"cpk-hex":"73c2c9","block":"d"},
+                {"name":"Molybdenum","atomic_mass":95.951,"boil":4912,"category":"transition metal","density":10.28,"discovered_by":"Carl Wilhelm Scheele","melt":2896,"number":42,"period":5,"group":6,"phase":"Solid","symbol":"Mo","xpos":6,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d5","electronegativity_pauling":2.16,"cpk-hex":"54b5b5","block":"d"},
+                {"name":"Technetium","atomic_mass":98,"boil":4538,"category":"transition metal","density":11,"discovered_by":"Emilio Segrè","melt":2430,"number":43,"period":5,"group":7,"phase":"Solid","symbol":"Tc","xpos":7,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d5","electronegativity_pauling":1.9,"cpk-hex":"3b9e9e","block":"d"},
+                {"name":"Ruthenium","atomic_mass":101.072,"boil":4423,"category":"transition metal","density":12.45,"discovered_by":"Karl Ernst Claus","melt":2607,"number":44,"period":5,"group":8,"phase":"Solid","symbol":"Ru","xpos":8,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d7","electronegativity_pauling":2.2,"cpk-hex":"248f8f","block":"d"},
+                {"name":"Rhodium","atomic_mass":102.905502,"boil":3968,"category":"transition metal","density":12.41,"discovered_by":"William Hyde Wollaston","melt":2237,"number":45,"period":5,"group":9,"phase":"Solid","symbol":"Rh","xpos":9,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d8","electronegativity_pauling":2.28,"cpk-hex":"0a7d8c","block":"d"},
+                {"name":"Palladium","atomic_mass":106.421,"boil":3236,"category":"transition metal","density":12.023,"discovered_by":"William Hyde Wollaston","melt":1828.05,"number":46,"period":5,"group":10,"phase":"Solid","symbol":"Pd","xpos":10,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 4d10","electronegativity_pauling":2.2,"cpk-hex":"006985","block":"d"},
+                {"name":"Silver","atomic_mass":107.86822,"boil":2435,"category":"transition metal","density":10.49,"discovered_by":"unknown, before 5000 BC","melt":1234.93,"number":47,"period":5,"group":11,"phase":"Solid","symbol":"Ag","xpos":11,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d10","electronegativity_pauling":1.93,"cpk-hex":"c0c0c0","block":"d"},
+                {"name":"Cadmium","atomic_mass":112.4144,"boil":1040,"category":"transition metal","density":8.65,"discovered_by":"Karl Samuel Leberecht Hermann","melt":594.22,"number":48,"period":5,"group":12,"phase":"Solid","symbol":"Cd","xpos":12,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10","electronegativity_pauling":1.69,"cpk-hex":"ffd98f","block":"d"},
+                {"name":"Indium","atomic_mass":114.8181,"boil":2345,"category":"post-transition metal","density":7.31,"discovered_by":"Ferdinand Reich","melt":429.7485,"number":49,"period":5,"group":13,"phase":"Solid","symbol":"In","xpos":13,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p1","electronegativity_pauling":1.78,"cpk-hex":"a67573","block":"p"},
+                {"name":"Tin","atomic_mass":118.7107,"boil":2875,"category":"post-transition metal","density":7.365,"discovered_by":"unknown, before 3500 BC","melt":505.08,"number":50,"period":5,"group":14,"phase":"Solid","symbol":"Sn","xpos":14,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p2","electronegativity_pauling":1.96,"cpk-hex":"668080","block":"p"},
+                {"name":"Antimony","atomic_mass":121.7601,"boil":1908,"category":"metalloid","density":6.697,"discovered_by":"unknown, before 3000 BC","melt":903.78,"number":51,"period":5,"group":15,"phase":"Solid","symbol":"Sb","xpos":15,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p3","electronegativity_pauling":2.05,"cpk-hex":"9e63b5","block":"p"},
+                {"name":"Tellurium","atomic_mass":127.603,"boil":1261,"category":"metalloid","density":6.24,"discovered_by":"Franz-Joseph Müller von Reichenstein","melt":722.66,"number":52,"period":5,"group":16,"phase":"Solid","symbol":"Te","xpos":16,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p4","electronegativity_pauling":2.1,"cpk-hex":"d47a00","block":"p"},
+                {"name":"Iodine","atomic_mass":126.904473,"boil":457.4,"category":"diatomic nonmetal","density":4.933,"discovered_by":"Bernard Courtois","melt":386.85,"number":53,"period":5,"group":17,"phase":"Solid","symbol":"I","xpos":17,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p5","electronegativity_pauling":2.66,"cpk-hex":"940094","block":"p"},
+                {"name":"Xenon","atomic_mass":131.2936,"boil":165.051,"category":"noble gas","density":5.894,"discovered_by":"William Ramsay","melt":161.4,"number":54,"period":5,"group":18,"phase":"Gas","symbol":"Xe","xpos":18,"ypos":5,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6","electronegativity_pauling":2.6,"cpk-hex":"429eb0","block":"p"},
+                {"name":"Cesium","atomic_mass":132.905451966,"boil":944,"category":"alkali metal","density":1.93,"discovered_by":"Robert Bunsen","melt":301.7,"number":55,"period":6,"group":1,"phase":"Solid","symbol":"Cs","xpos":1,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s1","electronegativity_pauling":0.79,"cpk-hex":"57178f","block":"s"},
+                {"name":"Barium","atomic_mass":137.3277,"boil":2118,"category":"alkaline earth metal","density":3.51,"discovered_by":"Carl Wilhelm Scheele","melt":1000,"number":56,"period":6,"group":2,"phase":"Solid","symbol":"Ba","xpos":2,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2","electronegativity_pauling":0.89,"cpk-hex":"00c900","block":"s"},
+                {"name":"Lanthanum","atomic_mass":138.905477,"boil":3737,"category":"lanthanide","density":6.162,"discovered_by":"Carl Gustaf Mosander","melt":1193,"number":57,"period":6,"group":3,"phase":"Solid","symbol":"La","xpos":3,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 5d1","electronegativity_pauling":1.1,"cpk-hex":"70d4ff","block":"f"},
+                {"name":"Cerium","atomic_mass":140.1161,"boil":3716,"category":"lanthanide","density":6.77,"discovered_by":"Martin Heinrich Klaproth","melt":1068,"number":58,"period":6,"group":3,"phase":"Solid","symbol":"Ce","xpos":4,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 5d1 4f1","electronegativity_pauling":1.12,"cpk-hex":"ffffc7","block":"f"},
+                {"name":"Praseodymium","atomic_mass":140.907662,"boil":3403,"category":"lanthanide","density":6.77,"discovered_by":"Carl Auer von Welsbach","melt":1208,"number":59,"period":6,"group":3,"phase":"Solid","symbol":"Pr","xpos":5,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f3","electronegativity_pauling":1.13,"cpk-hex":"d9ffc7","block":"f"},
+                {"name":"Neodymium","atomic_mass":144.2423,"boil":3347,"category":"lanthanide","density":7.01,"discovered_by":"Carl Auer von Welsbach","melt":1297,"number":60,"period":6,"group":3,"phase":"Solid","symbol":"Nd","xpos":6,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f4","electronegativity_pauling":1.14,"cpk-hex":"c7ffc7","block":"f"},
+                {"name":"Promethium","atomic_mass":145,"boil":3273,"category":"lanthanide","density":7.26,"discovered_by":"Chien Shiung Wu","melt":1315,"number":61,"period":6,"group":3,"phase":"Solid","symbol":"Pm","xpos":7,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f5","electronegativity_pauling":1.13,"cpk-hex":"a3ffc7","block":"f"},
+                {"name":"Samarium","atomic_mass":150.362,"boil":2173,"category":"lanthanide","density":7.52,"discovered_by":"Lecoq de Boisbaudran","melt":1345,"number":62,"period":6,"group":3,"phase":"Solid","symbol":"Sm","xpos":8,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f6","electronegativity_pauling":1.17,"cpk-hex":"8fffc7","block":"f"},
+                {"name":"Europium","atomic_mass":151.9641,"boil":1802,"category":"lanthanide","density":5.264,"discovered_by":"Eugène-Anatole Demarçay","melt":1099,"number":63,"period":6,"group":3,"phase":"Solid","symbol":"Eu","xpos":9,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f7","electronegativity_pauling":1.2,"cpk-hex":"61ffc7","block":"f"},
+                {"name":"Gadolinium","atomic_mass":157.253,"boil":3273,"category":"lanthanide","density":7.9,"discovered_by":"Jean Charles Galissard de Marignac","melt":1585,"number":64,"period":6,"group":3,"phase":"Solid","symbol":"Gd","xpos":10,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f7 5d1","electronegativity_pauling":1.2,"cpk-hex":"45ffc7","block":"f"},
+                {"name":"Terbium","atomic_mass":158.925352,"boil":3396,"category":"lanthanide","density":8.23,"discovered_by":"Carl Gustaf Mosander","melt":1629,"number":65,"period":6,"group":3,"phase":"Solid","symbol":"Tb","xpos":11,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f9","electronegativity_pauling":1.1,"cpk-hex":"30ffc7","block":"f"},
+                {"name":"Dysprosium","atomic_mass":162.5001,"boil":2840,"category":"lanthanide","density":8.54,"discovered_by":"Lecoq de Boisbaudran","melt":1680,"number":66,"period":6,"group":3,"phase":"Solid","symbol":"Dy","xpos":12,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f10","electronegativity_pauling":1.22,"cpk-hex":"1fffc7","block":"f"},
+                {"name":"Holmium","atomic_mass":164.930332,"boil":2873,"category":"lanthanide","density":8.79,"discovered_by":"Marc Delafontaine","melt":1734,"number":67,"period":6,"group":3,"phase":"Solid","symbol":"Ho","xpos":13,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f11","electronegativity_pauling":1.23,"cpk-hex":"00ff9c","block":"f"},
+                {"name":"Erbium","atomic_mass":167.2593,"boil":3141,"category":"lanthanide","density":9.066,"discovered_by":"Carl Gustaf Mosander","melt":1802,"number":68,"period":6,"group":3,"phase":"Solid","symbol":"Er","xpos":14,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f12","electronegativity_pauling":1.24,"cpk-hex":"00e675","block":"f"},
+                {"name":"Thulium","atomic_mass":168.934222,"boil":2223,"category":"lanthanide","density":9.32,"discovered_by":"Per Teodor Cleve","melt":1818,"number":69,"period":6,"group":3,"phase":"Solid","symbol":"Tm","xpos":15,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f13","electronegativity_pauling":1.25,"cpk-hex":"00d452","block":"f"},
+                {"name":"Ytterbium","atomic_mass":173.0451,"boil":1469,"category":"lanthanide","density":6.9,"discovered_by":"Jean Charles Galissard de Marignac","melt":1097,"number":70,"period":6,"group":3,"phase":"Solid","symbol":"Yb","xpos":16,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14","electronegativity_pauling":1.1,"cpk-hex":"00bf38","block":"f"},
+                {"name":"Lutetium","atomic_mass":174.96681,"boil":3675,"category":"lanthanide","density":9.841,"discovered_by":"Georges Urbain","melt":1925,"number":71,"period":6,"group":3,"phase":"Solid","symbol":"Lu","xpos":17,"ypos":9,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d1","electronegativity_pauling":1.27,"cpk-hex":"00ab24","block":"f"},
+                {"name":"Hafnium","atomic_mass":178.492,"boil":4876,"category":"transition metal","density":13.31,"discovered_by":"Dirk Coster","melt":2506,"number":72,"period":6,"group":4,"phase":"Solid","symbol":"Hf","xpos":4,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d2","electronegativity_pauling":1.3,"cpk-hex":"4dc2ff","block":"d"},
+                {"name":"Tantalum","atomic_mass":180.947882,"boil":5731,"category":"transition metal","density":16.69,"discovered_by":"Anders Gustaf Ekeberg","melt":3290,"number":73,"period":6,"group":5,"phase":"Solid","symbol":"Ta","xpos":5,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d3","electronegativity_pauling":1.5,"cpk-hex":"4da6ff","block":"d"},
+                {"name":"Tungsten","atomic_mass":183.841,"boil":6203,"category":"transition metal","density":19.25,"discovered_by":"Carl Wilhelm Scheele","melt":3695,"number":74,"period":6,"group":6,"phase":"Solid","symbol":"W","xpos":6,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d4","electronegativity_pauling":2.36,"cpk-hex":"2194d6","block":"d"},
+                {"name":"Rhenium","atomic_mass":186.2071,"boil":5869,"category":"transition metal","density":21.02,"discovered_by":"Masataka Ogawa","melt":3459,"number":75,"period":6,"group":7,"phase":"Solid","symbol":"Re","xpos":7,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d5","electronegativity_pauling":1.9,"cpk-hex":"267dab","block":"d"},
+                {"name":"Osmium","atomic_mass":190.233,"boil":5285,"category":"transition metal","density":22.59,"discovered_by":"Smithson Tennant","melt":3306,"number":76,"period":6,"group":8,"phase":"Solid","symbol":"Os","xpos":8,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d6","electronegativity_pauling":2.2,"cpk-hex":"266696","block":"d"},
+                {"name":"Iridium","atomic_mass":192.2173,"boil":4403,"category":"transition metal","density":22.56,"discovered_by":"Smithson Tennant","melt":2719,"number":77,"period":6,"group":9,"phase":"Solid","symbol":"Ir","xpos":9,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d7","electronegativity_pauling":2.2,"cpk-hex":"175487","block":"d"},
+                {"name":"Platinum","atomic_mass":195.0849,"boil":4098,"category":"transition metal","density":21.45,"discovered_by":"Antonio de Ulloa","melt":2041.4,"number":78,"period":6,"group":10,"phase":"Solid","symbol":"Pt","xpos":10,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s1 4f14 5d9","electronegativity_pauling":2.28,"cpk-hex":"d0d0e0","block":"d"},
+                {"name":"Gold","atomic_mass":196.9665695,"boil":3243,"category":"transition metal","density":19.3,"discovered_by":"Middle East","melt":1337.33,"number":79,"period":6,"group":11,"phase":"Solid","symbol":"Au","xpos":11,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s1 4f14 5d10","electronegativity_pauling":2.54,"cpk-hex":"ffd123","block":"d"},
+                {"name":"Mercury","atomic_mass":200.5923,"boil":629.88,"category":"transition metal","density":13.534,"discovered_by":"unknown, before 2000 BCE","melt":234.321,"number":80,"period":6,"group":12,"phase":"Liquid","symbol":"Hg","xpos":12,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10","electronegativity_pauling":2,"cpk-hex":"b8b8d0","block":"d"},
+                {"name":"Thallium","atomic_mass":204.38,"boil":1746,"category":"post-transition metal","density":11.85,"discovered_by":"William Crookes","melt":577,"number":81,"period":6,"group":13,"phase":"Solid","symbol":"Tl","xpos":13,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p1","electronegativity_pauling":1.62,"cpk-hex":"a6544d","block":"p"},
+                {"name":"Lead","atomic_mass":207.21,"boil":2022,"category":"post-transition metal","density":11.34,"discovered_by":"Middle East","melt":600.61,"number":82,"period":6,"group":14,"phase":"Solid","symbol":"Pb","xpos":14,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p2","electronegativity_pauling":1.87,"cpk-hex":"575961","block":"p"},
+                {"name":"Bismuth","atomic_mass":208.980401,"boil":1837,"category":"post-transition metal","density":9.78,"discovered_by":"Claude François Geoffroy","melt":544.7,"number":83,"period":6,"group":15,"phase":"Solid","symbol":"Bi","xpos":15,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p3","electronegativity_pauling":2.02,"cpk-hex":"9e4fb5","block":"p"},
+                {"name":"Polonium","atomic_mass":209,"boil":1235,"category":"post-transition metal","density":9.196,"discovered_by":"Pierre Curie","melt":527,"number":84,"period":6,"group":16,"phase":"Solid","symbol":"Po","xpos":16,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p4","electronegativity_pauling":2,"cpk-hex":"ab5c00","block":"p"},
+                {"name":"Astatine","atomic_mass":210,"boil":610,"category":"metalloid","density":6.35,"discovered_by":"Dale R. Corson","melt":575,"number":85,"period":6,"group":17,"phase":"Solid","symbol":"At","xpos":17,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p5","electronegativity_pauling":2.2,"cpk-hex":"754f45","block":"p"},
+                {"name":"Radon","atomic_mass":222,"boil":211.5,"category":"noble gas","density":9.73,"discovered_by":"Friedrich Ernst Dorn","melt":202,"number":86,"period":6,"group":18,"phase":"Gas","symbol":"Rn","xpos":18,"ypos":6,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6","electronegativity_pauling":2.2,"cpk-hex":"428296","block":"p"},
+                {"name":"Francium","atomic_mass":223,"boil":950,"category":"alkali metal","density":1.87,"discovered_by":"Marguerite Perey","melt":300,"number":87,"period":7,"group":1,"phase":"Solid","symbol":"Fr","xpos":1,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s1","electronegativity_pauling":0.79,"cpk-hex":"420066","block":"s"},
+                {"name":"Radium","atomic_mass":226,"boil":2010,"category":"alkaline earth metal","density":5.5,"discovered_by":"Pierre Curie","melt":1233,"number":88,"period":7,"group":2,"phase":"Solid","symbol":"Ra","xpos":2,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2","electronegativity_pauling":0.9,"cpk-hex":"007d00","block":"s"},
+                {"name":"Actinium","atomic_mass":227,"boil":3500,"category":"actinide","density":10,"discovered_by":"Friedrich Oskar Giesel","melt":1500,"number":89,"period":7,"group":3,"phase":"Solid","symbol":"Ac","xpos":3,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 6d1","electronegativity_pauling":1.1,"cpk-hex":"70abfa","block":"f"},
+                {"name":"Thorium","atomic_mass":232.03774,"boil":5061,"category":"actinide","density":11.724,"discovered_by":"Jöns Jakob Berzelius","melt":2023,"number":90,"period":7,"group":3,"phase":"Solid","symbol":"Th","xpos":4,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 6d2","electronegativity_pauling":1.3,"cpk-hex":"00baff","block":"f"},
+                {"name":"Protactinium","atomic_mass":231.035882,"boil":4300,"category":"actinide","density":15.37,"discovered_by":"William Crookes","melt":1841,"number":91,"period":7,"group":3,"phase":"Solid","symbol":"Pa","xpos":5,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f2 6d1","electronegativity_pauling":1.5,"cpk-hex":"00a1ff","block":"f"},
+                {"name":"Uranium","atomic_mass":238.028913,"boil":4404,"category":"actinide","density":19.1,"discovered_by":"Martin Heinrich Klaproth","melt":1405.3,"number":92,"period":7,"group":3,"phase":"Solid","symbol":"U","xpos":6,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f3 6d1","electronegativity_pauling":1.38,"cpk-hex":"008fff","block":"f"},
+                {"name":"Neptunium","atomic_mass":237,"boil":4447,"category":"actinide","density":20.45,"discovered_by":"Edwin McMillan","melt":912,"number":93,"period":7,"group":3,"phase":"Solid","symbol":"Np","xpos":7,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f4 6d1","electronegativity_pauling":1.36,"cpk-hex":"0080ff","block":"f"},
+                {"name":"Plutonium","atomic_mass":244,"boil":3505,"category":"actinide","density":19.816,"discovered_by":"Glenn T. Seaborg","melt":912.5,"number":94,"period":7,"group":3,"phase":"Solid","symbol":"Pu","xpos":8,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f6","electronegativity_pauling":1.28,"cpk-hex":"006bff","block":"f"},
+                {"name":"Americium","atomic_mass":243,"boil":2880,"category":"actinide","density":12,"discovered_by":"Glenn T. Seaborg","melt":1449,"number":95,"period":7,"group":3,"phase":"Solid","symbol":"Am","xpos":9,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f7","electronegativity_pauling":1.13,"cpk-hex":"545cf2","block":"f"},
+                {"name":"Curium","atomic_mass":247,"boil":3383,"category":"actinide","density":13.51,"discovered_by":"Glenn T. Seaborg","melt":1613,"number":96,"period":7,"group":3,"phase":"Solid","symbol":"Cm","xpos":10,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f7 6d1","electronegativity_pauling":1.28,"cpk-hex":"785ce3","block":"f"},
+                {"name":"Berkelium","atomic_mass":247,"boil":2900,"category":"actinide","density":14.78,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1259,"number":97,"period":7,"group":3,"phase":"Solid","symbol":"Bk","xpos":11,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f9","electronegativity_pauling":1.3,"cpk-hex":"8a4fe3","block":"f"},
+                {"name":"Californium","atomic_mass":251,"boil":1743,"category":"actinide","density":15.1,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1173,"number":98,"period":7,"group":3,"phase":"Solid","symbol":"Cf","xpos":12,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f10","electronegativity_pauling":1.3,"cpk-hex":"a136d4","block":"f"},
+                {"name":"Einsteinium","atomic_mass":252,"boil":1269,"category":"actinide","density":8.84,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1133,"number":99,"period":7,"group":3,"phase":"Solid","symbol":"Es","xpos":13,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f11","electronegativity_pauling":1.3,"cpk-hex":"b31fd4","block":"f"},
+                {"name":"Fermium","atomic_mass":257,"boil":null,"category":"actinide","density":null,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1800,"number":100,"period":7,"group":3,"phase":"Solid","symbol":"Fm","xpos":14,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f12","electronegativity_pauling":1.3,"cpk-hex":"b31fba","block":"f"},
+                {"name":"Mendelevium","atomic_mass":258,"boil":null,"category":"actinide","density":null,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1100,"number":101,"period":7,"group":3,"phase":"Solid","symbol":"Md","xpos":15,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f13","electronegativity_pauling":1.3,"cpk-hex":"b30da6","block":"f"},
+                {"name":"Nobelium","atomic_mass":259,"boil":null,"category":"actinide","density":null,"discovered_by":"Joint Institute for Nuclear Research","melt":1100,"number":102,"period":7,"group":3,"phase":"Solid","symbol":"No","xpos":16,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14","electronegativity_pauling":1.3,"cpk-hex":"bd0d87","block":"f"},
+                {"name":"Lawrencium","atomic_mass":266,"boil":null,"category":"actinide","density":null,"discovered_by":"Lawrence Berkeley National Laboratory","melt":1900,"number":103,"period":7,"group":3,"phase":"Solid","symbol":"Lr","xpos":17,"ypos":10,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 7p1","electronegativity_pauling":1.3,"cpk-hex":"c70066","block":"f"},
+                {"name":"Rutherfordium","atomic_mass":267,"boil":5800,"category":"transition metal","density":23.2,"discovered_by":"Joint Institute for Nuclear Research","melt":2400,"number":104,"period":7,"group":4,"phase":"Solid","symbol":"Rf","xpos":4,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d2","electronegativity_pauling":null,"cpk-hex":"cc0059","block":"d"},
+                {"name":"Dubnium","atomic_mass":268,"boil":null,"category":"transition metal","density":29.3,"discovered_by":"Joint Institute for Nuclear Research","melt":null,"number":105,"period":7,"group":5,"phase":"Solid","symbol":"Db","xpos":5,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d3","electronegativity_pauling":null,"cpk-hex":"d1004f","block":"d"},
+                {"name":"Seaborgium","atomic_mass":269,"boil":null,"category":"transition metal","density":35,"discovered_by":"Lawrence Berkeley National Laboratory","melt":null,"number":106,"period":7,"group":6,"phase":"Solid","symbol":"Sg","xpos":6,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d4","electronegativity_pauling":null,"cpk-hex":"d90045","block":"d"},
+                {"name":"Bohrium","atomic_mass":270,"boil":null,"category":"transition metal","density":37.1,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":null,"number":107,"period":7,"group":7,"phase":"Solid","symbol":"Bh","xpos":7,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d5","electronegativity_pauling":null,"cpk-hex":"e00038","block":"d"},
+                {"name":"Hassium","atomic_mass":269,"boil":null,"category":"transition metal","density":40.7,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":126,"number":108,"period":7,"group":8,"phase":"Solid","symbol":"Hs","xpos":8,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d6","electronegativity_pauling":null,"cpk-hex":"e6002e","block":"d"},
+                {"name":"Meitnerium","atomic_mass":278,"boil":null,"category":"transition metal","density":37.4,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":null,"number":109,"period":7,"group":9,"phase":"Solid","symbol":"Mt","xpos":9,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d7","electronegativity_pauling":null,"cpk-hex":"eb0026","block":"d"},
+                {"name":"Darmstadtium","atomic_mass":281,"boil":null,"category":"transition metal","density":34.8,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":null,"number":110,"period":7,"group":10,"phase":"Solid","symbol":"Ds","xpos":10,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d8","electronegativity_pauling":null,"cpk-hex":null,"block":"d"},
+                {"name":"Roentgenium","atomic_mass":282,"boil":null,"category":"transition metal","density":28.7,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":null,"number":111,"period":7,"group":11,"phase":"Solid","symbol":"Rg","xpos":11,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d9","electronegativity_pauling":null,"cpk-hex":null,"block":"d"},
+                {"name":"Copernicium","atomic_mass":285,"boil":3570,"category":"transition metal","density":14.0,"discovered_by":"Gesellschaft für Schwerionenforschung","melt":null,"number":112,"period":7,"group":12,"phase":"Liquid","symbol":"Cn","xpos":12,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10","electronegativity_pauling":null,"cpk-hex":null,"block":"d"},
+                {"name":"Nihonium","atomic_mass":286,"boil":1430,"category":"post-transition metal","density":16,"discovered_by":"RIKEN","melt":700,"number":113,"period":7,"group":13,"phase":"Solid","symbol":"Nh","xpos":13,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p1","electronegativity_pauling":null,"cpk-hex":null,"block":"p"},
+                {"name":"Flerovium","atomic_mass":289,"boil":420,"category":"post-transition metal","density":14,"discovered_by":"Joint Institute for Nuclear Research","melt":340,"number":114,"period":7,"group":14,"phase":"Solid","symbol":"Fl","xpos":14,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p2","electronegativity_pauling":null,"cpk-hex":null,"block":"p"},
+                {"name":"Moscovium","atomic_mass":289,"boil":1400,"category":"post-transition metal","density":13.5,"discovered_by":"Joint Institute for Nuclear Research","melt":670,"number":115,"period":7,"group":15,"phase":"Solid","symbol":"Mc","xpos":15,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p3","electronegativity_pauling":null,"cpk-hex":null,"block":"p"},
+                {"name":"Livermorium","atomic_mass":293,"boil":1085,"category":"post-transition metal","density":12.9,"discovered_by":"Joint Institute for Nuclear Research","melt":709,"number":116,"period":7,"group":16,"phase":"Solid","symbol":"Lv","xpos":16,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p4","electronegativity_pauling":null,"cpk-hex":null,"block":"p"},
+                {"name":"Tennessine","atomic_mass":294,"boil":883,"category":"metalloid","density":7.17,"discovered_by":"Joint Institute for Nuclear Research","melt":723,"number":117,"period":7,"group":17,"phase":"Solid","symbol":"Ts","xpos":17,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p5","electronegativity_pauling":null,"cpk-hex":null,"block":"p"},
+                {"name":"Oganesson","atomic_mass":294,"boil":350,"category":"noble gas","density":4.95,"discovered_by":"Joint Institute for Nuclear Research","melt":null,"number":118,"period":7,"group":18,"phase":"Solid","symbol":"Og","xpos":18,"ypos":7,"electron_configuration":"1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p6 6s2 4f14 5d10 6p6 7s2 5f14 6d10 7p6","electronegativity_pauling":null,"cpk-hex":null,"block":"p"}
+            ]
+        };
+
+        // Inicializar
+        function init() {
+            loadElementsData();
+            renderPeriodicTable();
+            setupQuickMolecules();
+            setupThreeJS();
+            setupEvents();
+        }
+
+        // Cargar datos de elementos
+        function loadElementsData() {
+            elementsData = periodicData.elements;
+            console.log("Datos de elementos cargados:", elementsData.length, "elementos");
+        }
+
+        // Renderizar tabla periódica
+        function renderPeriodicTable() {
+            const table = document.getElementById('periodic-table');
+            table.innerHTML = '';
+
+            // Ordenar elementos por número atómico
+            elementsData.sort((a, b) => a.number - b.number);
+
+            elementsData.forEach(el => {
+                const btn = document.createElement('button');
+                btn.className = 'element-btn';
+                btn.style.gridColumn = el.xpos;
+                btn.style.gridRow = el.ypos;
+                btn.style.background = categoryColors[el.category] || 'rgba(200,200,200,0.3)';
+                btn.style.borderColor = el["cpk-hex"] ? `#${el["cpk-hex"]}` : '#FFFFFF';
+                btn.innerHTML = `
+                    <div style="font-size: 0.7em;">${el.number}</div>
+                    <div class="element-symbol">${el.symbol}</div>
+                    <div style="font-size: 0.65em;">${el.atomic_mass ? el.atomic_mass.toFixed(1) : 'N/A'}</div>
+                `;
+                btn.title = `${el.name} (${el.symbol})\nMasa: ${el.atomic_mass ? el.atomic_mass.toFixed(3) : 'N/A'} u\nCategoría: ${el.category}`;
+                btn.onclick = () => {
+                    addAtom(el);
+                    showElementInfo(el);
+                };
+                table.appendChild(btn);
+            });
+        }
+
+        // Mostrar información detallada del elemento
+        function showElementInfo(element) {
+            const container = document.getElementById('element-info');
+            currentElementInfo = element;
+            
+            container.innerHTML = `
+                <div class="element-details">
+                    <h3>${element.name} (${element.symbol})</h3>
+                    <p><strong>Número atómico:</strong> ${element.number}</p>
+                    <p><strong>Masa atómica:</strong> ${element.atomic_mass ? element.atomic_mass.toFixed(3) : 'N/A'} u</p>
+                    <p><strong>Categoría:</strong> ${element.category}</p>
+                    <p><strong>Grupo:</strong> ${element.group}</p>
+                    <p><strong>Periodo:</strong> ${element.period}</p>
+                    <p><strong>Bloque:</strong> ${element.block}</p>
+                    <p><strong>Configuración electrónica:</strong> ${element.electron_configuration}</p>
+                    <p><strong>Electronegatividad (Pauling):</strong> ${element.electronegativity_pauling || 'N/A'}</p>
+                    <p><strong>Descubierto por:</strong> ${element.discovered_by || 'Desconocido'}</p>
+                    <p><strong>Estado:</strong> ${element.phase}</p>
+                    <p><strong>Punto de fusión:</strong> ${element.melt ? element.melt + ' K' : 'N/A'}</p>
+                    <p><strong>Punto de ebullición:</strong> ${element.boil ? element.boil + ' K' : 'N/A'}</p>
+                    <p><strong>Densidad:</strong> ${element.density ? element.density + ' g/cm³' : 'N/A'}</p>
+                </div>
+            `;
+        }
+
+        // Agregar átomo
+        function addAtom(element) {
+            selectedAtoms.push(element);
+            updateUI();
+        }
+
+        // Actualizar UI
+        function updateUI() {
+            const container = document.getElementById('selected-atoms');
+            if (selectedAtoms.length === 0) {
+                container.innerHTML = '<p style="color: #aaa; text-align: center; padding: 20px;">Haz clic en los elementos de la tabla periódica</p>';
+            } else {
+                container.innerHTML = selectedAtoms.map((atom, idx) => `
+                    <div class="atom-item">
+                        <span style="color: ${atom["cpk-hex"] ? `#${atom["cpk-hex"]}` : '#FFFFFF'}; font-weight: bold;">
+                            ${atom.symbol} - ${atom.name}
+                        </span>
+                        <button onclick="removeAtom(${idx})" style="background: rgba(255,0,110,0.3); border: 1px solid #FF006E; color: white; padding: 4px 10px; border-radius: 5px; cursor: pointer;">✕</button>
+                    </div>
+                `).join('');
+            }
+
+            updateProperties();
+        }
+
+        window.removeAtom = function(idx) {
+            selectedAtoms.splice(idx, 1);
+            updateUI();
+        };
+
+        // Actualizar propiedades
+        function updateProperties() {
+            const props = document.getElementById('properties');
+            if (selectedAtoms.length === 0) {
+                props.innerHTML = '<p style="color: #aaa; text-align: center;">Sin datos</p>';
+                return;
+            }
+
+            const mass = selectedAtoms.reduce((sum, a) => sum + (a.atomic_mass || 0), 0);
+            const formula = generateFormula();
+
+            props.innerHTML = `
+                <div class="property-row">
+                    <span class="property-label">Fórmula:</span>
+                    <span class="property-value">${formula}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Masa Molecular:</span>
+                    <span class="property-value">${mass.toFixed(2)} g/mol</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">N° Átomos:</span>
+                    <span class="property-value">${selectedAtoms.length}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Estados:</span>
+                    <span class="property-value">${getPhaseCount()}</span>
+                </div>
+            `;
+        }
+
+        // Generar fórmula
+        function generateFormula() {
+            const counts = {};
+            selectedAtoms.forEach(a => counts[a.symbol] = (counts[a.symbol] || 0) + 1);
+            
+            return Object.entries(counts)
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([sym, cnt]) => sym + (cnt > 1 ? cnt : ''))
+                .join('');
+        }
+
+        // Contar estados de la molécula
+        function getPhaseCount() {
+            const phases = {};
+            selectedAtoms.forEach(a => {
+                phases[a.phase] = (phases[a.phase] || 0) + 1;
+            });
+            
+            return Object.entries(phases)
+                .map(([phase, count]) => `${phase}: ${count}`)
+                .join(', ');
+        }
+
+        // Three.JS
+        function setupThreeJS() {
+            const container = document.getElementById('molecule-canvas');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / 500, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            renderer.setSize(container.clientWidth, 500);
+            renderer.setClearColor(0x0a0e27, 0.5);
+            container.appendChild(renderer.domElement);
+
+            const light = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(light);
+            const point = new THREE.PointLight(0x00D9FF, 1, 100);
+            point.position.set(10, 10, 10);
+            scene.add(point);
+
+            camera.position.z = 8;
+            animate();
+        }
+
+        // Construir molécula
+        function buildMolecule() {
+            if (selectedAtoms.length === 0) {
+                alert('⚠️ Selecciona al menos un átomo');
+                return;
+            }
+
+            if (moleculeGroup) scene.remove(moleculeGroup);
+            moleculeGroup = new THREE.Group();
+
+            const geometry = document.getElementById('geometry-select').value;
+            const positions = generateGeometry(selectedAtoms.length, geometry);
+
+            selectedAtoms.forEach((atom, i) => {
+                // Tamaño basado en la masa atómica
+                const radius = 0.2 + (atom.atomic_mass / 200);
+                const geom = new THREE.SphereGeometry(radius, 32, 32);
+                const mat = new THREE.MeshPhongMaterial({ 
+                    color: atom["cpk-hex"] ? `#${atom["cpk-hex"]}` : '#FFFFFF', 
+                    emissive: atom["cpk-hex"] ? `#${atom["cpk-hex"]}` : '#FFFFFF',
+                    emissiveIntensity: 0.2
+                });
+                const mesh = new THREE.Mesh(geom, mat);
+                mesh.position.set(...positions[i]);
+                moleculeGroup.add(mesh);
+
+                // Glow
+                const glow = new THREE.Mesh(
+                    new THREE.SphereGeometry(radius + 0.05, 16, 16),
+                    new THREE.MeshBasicMaterial({ 
+                        color: atom["cpk-hex"] ? `#${atom["cpk-hex"]}` : '#FFFFFF', 
+                        transparent: true, 
+                        opacity: 0.3 
+                    })
+                );
+                glow.position.set(...positions[i]);
+                moleculeGroup.add(glow);
+            });
+
+            // Enlaces
+            for (let i = 0; i < selectedAtoms.length - 1; i++) {
+                const start = new THREE.Vector3(...positions[i]);
+                const end = new THREE.Vector3(...positions[i + 1]);
+                const dist = start.distanceTo(end);
+                const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+                
+                const bond = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.08, 0.08, dist, 16),
+                    new THREE.MeshPhongMaterial({ color: 0x95E1D3 })
+                );
+                bond.position.copy(mid);
+                bond.lookAt(end);
+                bond.rotateX(Math.PI / 2);
+                moleculeGroup.add(bond);
+            }
+
+            scene.add(moleculeGroup);
+            alert(`✨ Molécula creada: ${generateFormula()}`);
+        }
+
+        // Generar geometría
+        function generateGeometry(n, type) {
+            const pos = [];
+            const s = 1.5;
+
+            switch(type) {
+                case 'linear':
+                    for (let i = 0; i < n; i++) pos.push([i * s, 0, 0]);
+                    break;
+                case 'bent':
+                    pos.push([0,0,0]);
+                    if (n > 1) pos.push([s, 0, 0]);
+                    if (n > 2) pos.push([s*0.7, s*0.7, 0]);
+                    for (let i = 3; i < n; i++) pos.push([Math.random()*s*2-s, Math.random()*s*2-s, 0]);
+                    break;
+                case 'tetrahedral':
+                    pos.push([0,0,0], [s,0,0], [-s/2,s*0.866,0], [-s/2,-s*0.866,0]);
+                    if (n > 4) pos.push([0,0,s*1.4]);
+                    for (let i = 5; i < n; i++) pos.push([Math.random()*s*2-s, Math.random()*s*2-s, Math.random()*s]);
+                    break;
+                case 'ring':
+                    for (let i = 0; i < n; i++) {
+                        const a = i * 2 * Math.PI / n;
+                        pos.push([s * Math.cos(a), s * Math.sin(a), 0]);
+                    }
+                    break;
+                default:
+                    for (let i = 0; i < n; i++) pos.push([Math.random()*s*2-s, Math.random()*s*2-s, Math.random()*s*2-s]);
+            }
+
+            return pos;
+        }
+
+        // Animación
+        function animate() {
+            requestAnimationFrame(animate);
+            if (moleculeGroup) {
+                moleculeGroup.rotation.y += 0.005;
+            }
+            renderer.render(scene, camera);
+        }
+
+        // Moléculas rápidas
+        function setupQuickMolecules() {
+            const quick = {
+                'H₂O': ['H','O','H'],
+                'CO₂': ['C','O','O'],
+                'NH₃': ['N','H','H','H'],
+                'CH₄': ['C','H','H','H','H'],
+                'NaCl': ['Na','Cl'],
+                'O₂': ['O','O']
+            };
+
+            const container = document.getElementById('quick-molecules');
+            container.innerHTML = Object.keys(quick).map(f => 
+                `<button class="quick-btn" onclick="loadQuick('${f}')">${f}</button>`
+            ).join('');
+        }
+
+        window.loadQuick = function(formula) {
+            const quick = {
+                'H₂O': ['H','O','H'],
+                'CO₂': ['C','O','O'],
+                'NH₃': ['N','H','H','H'],
+                'CH₄': ['C','H','H','H','H'],
+                'NaCl': ['Na','Cl'],
+                'O₂': ['O','O']
+            };
+
+            selectedAtoms = [];
+            quick[formula].forEach(sym => {
+                const el = elementsData.find(e => e.symbol === sym);
+                if (el) selectedAtoms.push(el);
+            });
+            updateUI();
+            
+            // Mostrar información del primer elemento
+            if (selectedAtoms.length > 0) {
+                showElementInfo(selectedAtoms[0]);
+            }
+        };
+
+        // Eventos
+        function setupEvents() {
+            document.getElementById('build-btn').onclick = buildMolecule;
+            document.getElementById('clear-btn').onclick = () => {
+                selectedAtoms = [];
+                updateUI();
+                document.getElementById('element-info').innerHTML = '<p style="color: #aaa; text-align: center;">Selecciona un elemento para ver su información</p>';
+            };
+
+            window.addEventListener('resize', () => {
+                const container = document.getElementById('molecule-canvas');
+                if (renderer && camera) {
+                    renderer.setSize(container.clientWidth, 500);
+                    camera.aspect = container.clientWidth / 500;
+                    camera.updateProjectionMatrix();
+                }
+            });
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

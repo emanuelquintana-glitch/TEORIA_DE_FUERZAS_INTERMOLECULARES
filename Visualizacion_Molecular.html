@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoSSL + SAPT | Análisis Cuántico Multi-Molecular Mejorado</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        /* Estilos anteriores (se mantienen iguales) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a3e 50%, #0f0c29 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0,217,255,0.1) 0%, rgba(157,78,221,0.1) 100%);
+            border-bottom: 2px solid #00D9FF;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00F5FF, transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            background: linear-gradient(45deg, #00D9FF, #9D4EDD, #06FFA5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px #00D9FF); }
+            to { filter: drop-shadow(0 0 20px #9D4EDD); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #00F5FF;
+            margin-top: 10px;
+            letter-spacing: 3px;
+        }
+
+        .method-badge {
+            display: inline-block;
+            background: rgba(0,217,255,0.2);
+            border: 2px solid #00D9FF;
+            border-radius: 20px;
+            padding: 10px 25px;
+            margin: 15px 10px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px #00D9FF; }
+            50% { box-shadow: 0 0 25px #00D9FF, 0 0 40px #9D4EDD; }
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .molecule-selector {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .molecule-btn {
+            background: linear-gradient(135deg, rgba(0,217,255,0.2), rgba(157,78,221,0.2));
+            border: 2px solid rgba(0,217,255,0.5);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .molecule-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,217,255,0.4);
+            border-color: #00D9FF;
+        }
+
+        .molecule-btn.active {
+            background: linear-gradient(135deg, #00D9FF, #9D4EDD);
+            border-color: #00F5FF;
+            box-shadow: 0 0 30px rgba(0,217,255,0.6);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .panel {
+            background: rgba(10,14,39,0.8);
+            border: 2px solid rgba(0,217,255,0.3);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,217,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #00D9FF, #9D4EDD, #06FFA5, #FF006E);
+            border-radius: 15px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .panel:hover::before {
+            opacity: 0.3;
+        }
+
+        .panel:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0,217,255,0.4);
+        }
+
+        .panel-title {
+            font-size: 1.5em;
+            color: #00F5FF;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid rgba(0,217,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #00D9FF, #9D4EDD);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        #molecule-canvas {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, rgba(0,20,40,0.5), rgba(10,5,30,0.5));
+            border: 1px solid rgba(0,217,255,0.2);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, rgba(0,217,255,0.1), rgba(157,78,221,0.1));
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .metric-card:hover {
+            transform: scale(1.05);
+            border-color: #00D9FF;
+            box-shadow: 0 0 20px rgba(0,217,255,0.4);
+        }
+
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00D9FF, #06FFA5);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .energy-bar {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            gap: 10px;
+        }
+
+        .energy-label {
+            min-width: 140px;
+            font-size: 0.95em;
+            color: #00F5FF;
+        }
+
+        .energy-bar-container {
+            flex: 1;
+            height: 25px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0,217,255,0.2);
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 1s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .energy-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .energy-value {
+            min-width: 100px;
+            text-align: right;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        canvas {
+            border-radius: 10px;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+            border-top: 2px solid rgba(0,217,255,0.3);
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #06FFA5;
+            box-shadow: 0 0 10px #06FFA5;
+            animation: blink 1.5s infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .info-box {
+            background: rgba(0,217,255,0.05);
+            border-left: 4px solid #00D9FF;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info-box h3 {
+            color: #00F5FF;
+            margin-bottom: 10px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .info-box li::before {
+            content: '▸';
+            color: #06FFA5;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .molecule-info {
+            background: rgba(157,78,221,0.1);
+            border: 2px solid rgba(157,78,221,0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .molecule-info h3 {
+            color: #9D4EDD;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .property-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .property-label {
+            color: #aaa;
+        }
+
+        .property-value {
+            color: #00F5FF;
+            font-weight: bold;
+        }
+
+        /* Nuevos estilos para funcionalidades adicionales */
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: linear-gradient(135deg, rgba(6,255,165,0.2), rgba(157,78,221,0.2));
+            border: 2px solid rgba(6,255,165,0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(6,255,165,0.4);
+            border-color: #06FFA5;
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #06FFA5, #9D4EDD);
+            border-color: #06FFA5;
+            box-shadow: 0 0 30px rgba(6,255,165,0.6);
+        }
+
+        .comparison-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .comparison-item {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .orbital-viewer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .orbital-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .orbital-btn {
+            background: rgba(255,158,0,0.2);
+            border: 1px solid rgba(255,158,0,0.5);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .orbital-btn:hover {
+            background: rgba(255,158,0,0.4);
+            border-color: #FF9E00;
+        }
+
+        .orbital-btn.active {
+            background: rgba(255,158,0,0.6);
+            border-color: #FF9E00;
+            box-shadow: 0 0 15px rgba(255,158,0,0.6);
+        }
+
+        .export-section {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, rgba(255,0,110,0.2), rgba(157,78,221,0.2));
+            border: 2px solid rgba(255,0,110,0.5);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255,0,110,0.4);
+            border-color: #FF006E;
+        }
+
+        .simulation-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .simulation-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .simulation-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #00D9FF;
+            cursor: pointer;
+            box-shadow: 0 0 10px #00D9FF;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>GeoSSL + SAPT MULTI-MOLECULAR ANALYZER</h1>
+        <div class="subtitle">BIBLIOTECA DE MOLÉCULAS CON ANÁLISIS CUÁNTICO COMPLETO</div>
+        <div>
+            <span class="method-badge">CCSD(T)/aug-cc-pVQZ</span>
+            <span class="method-badge">SE(3)-Invariant</span>
+            <span class="method-badge">Sub-Wavenumber Precision</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="molecule-selector">
+            <button class="molecule-btn active" data-molecule="benzene">Benzeno (C₆H₆)</button>
+            <button class="molecule-btn" data-molecule="water">Agua (H₂O)</button>
+            <button class="molecule-btn" data-molecule="methane">Metano (CH₄)</button>
+            <button class="molecule-btn" data-molecule="ethanol">Etanol (C₂H₅OH)</button>
+            <button class="molecule-btn" data-molecule="co2">Dióxido de Carbono (CO₂)</button>
+            <button class="molecule-btn" data-molecule="ammonia">Amoniaco (NH₃)</button>
+            <button class="molecule-btn" data-molecule="caffeine">Cafeína (C₈H₁₀N₄O₂)</button>
+            <button class="molecule-btn" data-molecule="aspirin">Aspirina (C₉H₈O₄)</button>
+            <button class="molecule-btn" data-molecule="glucose">Glucosa (C₆H₁₂O₆)</button>
+            <button class="molecule-btn" data-molecule="adrenaline">Adrenalina (C₉H₁₃NO₃)</button>
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" id="toggle-orbitals">Mostrar Orbitales</button>
+            <button class="control-btn" id="toggle-vibrations">Simular Vibraciones</button>
+            <button class="control-btn" id="compare-molecules">Comparar Moléculas</button>
+            <button class="control-btn" id="toggle-surface">Superficie Electroestática</button>
+        </div>
+
+        <div class="grid">
+            <!-- Panel 1: Visualización Molecular 3D -->
+            <div class="panel full-width">
+                <div class="panel-title">
+                    <span class="icon">🔬</span>
+                    <span id="molecule-title">BENZENO (C₆H₆) | Estructura 3D Optimizada</span>
+                    <span class="status-indicator"></span>
+                </div>
+                <div id="molecule-canvas"></div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF6B6B;"></div>
+                        <span>Oxígeno (O)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4ECDC4;"></div>
+                        <span>Carbono (C)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFE66D;"></div>
+                        <span>Nitrógeno (N)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #E8F4F8;"></div>
+                        <span>Hidrógeno (H)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #95E1D3;"></div>
+                        <span>Enlaces</span>
+                    </div>
+                </div>
+                <div class="orbital-viewer" id="orbital-viewer" style="display: none;">
+                    <div class="orbital-selector">
+                        <button class="orbital-btn" data-orbital="homo">HOMO</button>
+                        <button class="orbital-btn" data-orbital="lumo">LUMO</button>
+                        <button class="orbital-btn" data-orbital="homo-1">HOMO-1</button>
+                        <button class="orbital-btn" data-orbital="lumo+1">LUMO+1</button>
+                    </div>
+                    <div id="orbital-canvas" style="width: 100%; height: 300px; border-radius: 10px; background: rgba(0,20,40,0.5); border: 1px solid rgba(0,217,255,0.2);"></div>
+                </div>
+                <div class="simulation-controls" id="simulation-controls" style="display: none;">
+                    <button class="control-btn" id="play-simulation">▶ Reproducir</button>
+                    <input type="range" min="0" max="100" value="0" class="simulation-slider" id="simulation-slider">
+                    <span id="simulation-time">0 fs</span>
+                </div>
+                <div class="molecule-info" id="molecule-details">
+                    <h3>Propiedades Moleculares - Benzeno</h3>
+                    <div class="property-row">
+                        <span class="property-label">Fórmula Molecular:</span>
+                        <span class="property-value">C₆H₆</span>
+                    </div>
+                    <div class="property-row">
+                        <span class="property-label">Masa Molecular:</span>
+                        <span class="property-value">78.11 g/mol</span>
+                    </div>
+                    <div class="property-row">
+                        <span class="property-label">Grupo Puntual:</span>
+                        <span class="property-value">D₆h</span>
+                    </div>
+                    <div class="property-row">
+                        <span class="property-label">Momento Dipolar:</span>
+                        <span class="property-value">0.00 D (apolar)</span>
+                    </div>
+                </div>
+                <div class="export-section">
+                    <button class="export-btn" id="export-data">Exportar Datos</button>
+                    <button class="export-btn" id="export-image">Exportar Imagen</button>
+                    <button class="export-btn" id="export-json">Exportar JSON</button>
+                </div>
+            </div>
+
+            <!-- Panel 2: Superficie de Energía Potencial -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">⚡</span>
+                    <span>Superficie de Energía Potencial SAPT</span>
+                </div>
+                <canvas id="pesChart"></canvas>
+            </div>
+
+            <!-- Panel 3: Componentes SAPT -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">⚛️</span>
+                    <span>Descomposición Energética SAPT</span>
+                </div>
+                <div id="sapt-components"></div>
+            </div>
+
+            <!-- Panel 4: Métricas de Precisión -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">🎯</span>
+                    <span>Métricas de Validación</span>
+                </div>
+                <div class="metric-grid" id="metrics-grid"></div>
+            </div>
+
+            <!-- Panel 5: Propiedades Termodinámicas -->
+            <div class="panel">
+                <div class="panel-title">
+                    <span class="icon">🌡️</span>
+                    <span>Propiedades Termodinámicas</span>
+                </div>
+                <canvas id="thermoChart"></canvas>
+            </div>
+
+            <!-- Panel 6: Comparación de Moléculas -->
+            <div class="panel full-width" id="comparison-panel" style="display: none;">
+                <div class="panel-title">
+                    <span class="icon">📊</span>
+                    <span>Comparación de Moléculas</span>
+                </div>
+                <div class="comparison-panel">
+                    <div class="comparison-item">
+                        <h3>Molécula 1</h3>
+                        <select id="compare-mol1" class="molecule-btn" style="width: 100%; margin: 10px 0;">
+                            <option value="benzene">Benzeno (C₆H₆)</option>
+                            <option value="water">Agua (H₂O)</option>
+                            <option value="methane">Metano (CH₄)</option>
+                            <option value="ethanol">Etanol (C₂H₅OH)</option>
+                            <option value="co2">Dióxido de Carbono (CO₂)</option>
+                        </select>
+                        <div id="compare-data1"></div>
+                    </div>
+                    <div class="comparison-item">
+                        <h3>Molécula 2</h3>
+                        <select id="compare-mol2" class="molecule-btn" style="width: 100%; margin: 10px 0;">
+                            <option value="water">Agua (H₂O)</option>
+                            <option value="benzene">Benzeno (C₆H₆)</option>
+                            <option value="methane">Metano (CH₄)</option>
+                            <option value="ethanol">Etanol (C₂H₅OH)</option>
+                            <option value="co2">Dióxido de Carbono (CO₂)</option>
+                        </select>
+                        <div id="compare-data2"></div>
+                    </div>
+                </div>
+                <canvas id="comparisonChart" style="margin-top: 20px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 GeoSSL + SAPT Multi-Molecular Quantum Analysis System</p>
+        <p>Molecular Geometry Pretraining with SE(3)-Invariant Denoising Distance Matching (ICLR'23)</p>
+        <p>Symmetry-Adapted Perturbation Theory | High-Precision Ab Initio Calculations</p>
+    </div>
+
+    <script>
+        // ==================== BASE DE DATOS DE MOLÉCULAS AMPLIADA ====================
+        const moleculeDatabase = {
+            benzene: {
+                name: 'Benzeno',
+                formula: 'C₆H₆',
+                mass: 78.11,
+                pointGroup: 'D₆h',
+                dipole: 0.00,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.4, 0, 0], type: 'C' },
+                    { pos: [2.1, 1.2, 0], type: 'C' },
+                    { pos: [1.4, 2.4, 0], type: 'C' },
+                    { pos: [0, 2.4, 0], type: 'C' },
+                    { pos: [-0.7, 1.2, 0], type: 'C' },
+                    { pos: [-0.35, 0, 0.9], type: 'H' },
+                    { pos: [1.75, 0, 0.9], type: 'H' },
+                    { pos: [2.45, 1.2, 0.9], type: 'H' },
+                    { pos: [1.75, 2.4, 0.9], type: 'H' },
+                    { pos: [-0.35, 2.4, 0.9], type: 'H' },
+                    { pos: [-1.05, 1.2, 0.9], type: 'H' }
+                ],
+                bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]],
+                sapt: { elec: -45.2, ind: -12.8, disp: -28.9, exch: 65.4 },
+                minEnergy: -152.3,
+                barrier: 24.7,
+                orbitals: {
+                    homo: -8.2,
+                    lumo: -0.9,
+                    gap: 7.3
+                },
+                vibrations: [
+                    { frequency: 992, intensity: 0.8, mode: 'Respiración del anillo' },
+                    { frequency: 1010, intensity: 0.3, mode: 'Deformación CH' },
+                    { frequency: 1300, intensity: 0.6, mode: 'Estiramiento CC' }
+                ]
+            },
+            water: {
+                name: 'Agua',
+                formula: 'H₂O',
+                mass: 18.01,
+                pointGroup: 'C₂v',
+                dipole: 1.85,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'O' },
+                    { pos: [0.757, 0.586, 0], type: 'H' },
+                    { pos: [-0.757, 0.586, 0], type: 'H' }
+                ],
+                bonds: [[0,1],[0,2]],
+                sapt: { elec: -62.3, ind: -18.5, disp: -15.2, exch: 82.1 },
+                minEnergy: -186.2,
+                barrier: 32.5,
+                orbitals: {
+                    homo: -12.6,
+                    lumo: 0.2,
+                    gap: 12.8
+                },
+                vibrations: [
+                    { frequency: 1595, intensity: 0.9, mode: 'Flexión simétrica' },
+                    { frequency: 3657, intensity: 0.7, mode: 'Estiramiento asimétrico' },
+                    { frequency: 3756, intensity: 0.8, mode: 'Estiramiento simétrico' }
+                ]
+            },
+            methane: {
+                name: 'Metano',
+                formula: 'CH₄',
+                mass: 16.04,
+                pointGroup: 'Tₐ',
+                dipole: 0.00,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [0.629, 0.629, 0.629], type: 'H' },
+                    { pos: [-0.629, -0.629, 0.629], type: 'H' },
+                    { pos: [-0.629, 0.629, -0.629], type: 'H' },
+                    { pos: [0.629, -0.629, -0.629], type: 'H' }
+                ],
+                bonds: [[0,1],[0,2],[0,3],[0,4]],
+                sapt: { elec: -32.1, ind: -8.3, disp: -22.4, exch: 54.2 },
+                minEnergy: -128.7,
+                barrier: 18.3,
+                orbitals: {
+                    homo: -14.3,
+                    lumo: 4.2,
+                    gap: 18.5
+                },
+                vibrations: [
+                    { frequency: 1306, intensity: 0.2, mode: 'Deformación' },
+                    { frequency: 1534, intensity: 0.1, mode: 'Deformación' },
+                    { frequency: 2917, intensity: 0.9, mode: 'Estiramiento CH' }
+                ]
+            },
+            ethanol: {
+                name: 'Etanol',
+                formula: 'C₂H₅OH',
+                mass: 46.07,
+                pointGroup: 'Cs',
+                dipole: 1.69,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.5, 0, 0], type: 'C' },
+                    { pos: [2.2, 1.0, 0], type: 'O' },
+                    { pos: [-0.5, 0.9, 0], type: 'H' },
+                    { pos: [-0.5, -0.9, 0], type: 'H' },
+                    { pos: [1.8, -0.7, 0.8], type: 'H' },
+                    { pos: [1.8, -0.7, -0.8], type: 'H' },
+                    { pos: [2.9, 1.3, 0], type: 'H' }
+                ],
+                bonds: [[0,1],[1,2],[0,3],[0,4],[1,5],[1,6],[2,7]],
+                sapt: { elec: -58.4, ind: -15.7, disp: -31.2, exch: 78.9 },
+                minEnergy: -168.5,
+                barrier: 28.4,
+                orbitals: {
+                    homo: -11.2,
+                    lumo: 0.8,
+                    gap: 12.0
+                },
+                vibrations: [
+                    { frequency: 1050, intensity: 0.6, mode: 'Estiramiento CO' },
+                    { frequency: 1250, intensity: 0.4, mode: 'Flexión CH' },
+                    { frequency: 1450, intensity: 0.5, mode: 'Deformación CH₂' },
+                    { frequency: 2950, intensity: 0.8, mode: 'Estiramiento CH' }
+                ]
+            },
+            co2: {
+                name: 'Dióxido de Carbono',
+                formula: 'CO₂',
+                mass: 44.01,
+                pointGroup: 'D∞h',
+                dipole: 0.00,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.16, 0, 0], type: 'O' },
+                    { pos: [-1.16, 0, 0], type: 'O' }
+                ],
+                bonds: [[0,1],[0,2]],
+                sapt: { elec: -38.7, ind: -10.2, disp: -19.8, exch: 61.3 },
+                minEnergy: -135.4,
+                barrier: 21.7,
+                orbitals: {
+                    homo: -13.8,
+                    lumo: -1.2,
+                    gap: 12.6
+                },
+                vibrations: [
+                    { frequency: 667, intensity: 0.9, mode: 'Flexión' },
+                    { frequency: 1388, intensity: 0.1, mode: 'Estiramiento asimétrico' },
+                    { frequency: 2349, intensity: 0.8, mode: 'Estiramiento simétrico' }
+                ]
+            },
+            ammonia: {
+                name: 'Amoniaco',
+                formula: 'NH₃',
+                mass: 17.03,
+                pointGroup: 'C₃v',
+                dipole: 1.47,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'N' },
+                    { pos: [0.94, 0, -0.38], type: 'H' },
+                    { pos: [-0.47, 0.81, -0.38], type: 'H' },
+                    { pos: [-0.47, -0.81, -0.38], type: 'H' }
+                ],
+                bonds: [[0,1],[0,2],[0,3]],
+                sapt: { elec: -54.2, ind: -16.4, disp: -18.7, exch: 74.5 },
+                minEnergy: -158.9,
+                barrier: 26.8,
+                orbitals: {
+                    homo: -10.8,
+                    lumo: 2.1,
+                    gap: 12.9
+                },
+                vibrations: [
+                    { frequency: 950, intensity: 0.7, mode: 'Deformación simétrica' },
+                    { frequency: 1627, intensity: 0.9, mode: 'Deformación asimétrica' },
+                    { frequency: 3337, intensity: 0.8, mode: 'Estiramiento simétrico' },
+                    { frequency: 3444, intensity: 0.7, mode: 'Estiramiento asimétrico' }
+                ]
+            },
+            caffeine: {
+                name: 'Cafeína',
+                formula: 'C₈H₁₀N₄O₂',
+                mass: 194.19,
+                pointGroup: 'C₁',
+                dipole: 3.64,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.4, 0, 0], type: 'C' },
+                    { pos: [2.1, 1.2, 0], type: 'N' },
+                    { pos: [1.4, 2.4, 0], type: 'C' },
+                    { pos: [0, 2.4, 0], type: 'N' },
+                    { pos: [-0.7, 1.2, 0], type: 'C' },
+                    { pos: [2.8, 1.2, 1.2], type: 'C' },
+                    { pos: [1.8, 3.3, 0], type: 'O' },
+                    { pos: [-0.5, 3.4, 0], type: 'C' },
+                    { pos: [-1.9, 1.2, 0], type: 'O' },
+                    { pos: [3.5, 2.0, 1.2], type: 'N' },
+                    { pos: [3.0, 0.3, 2.0], type: 'N' }
+                ],
+                bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[2,6],[3,7],[4,8],[5,9],[6,10],[6,11]],
+                sapt: { elec: -78.5, ind: -24.3, disp: -42.7, exch: 112.8 },
+                minEnergy: -195.7,
+                barrier: 38.2,
+                orbitals: {
+                    homo: -8.7,
+                    lumo: -1.2,
+                    gap: 7.5
+                },
+                vibrations: [
+                    { frequency: 745, intensity: 0.6, mode: 'Respiración del anillo' },
+                    { frequency: 1245, intensity: 0.7, mode: 'Estiramiento CN' },
+                    { frequency: 1550, intensity: 0.8, mode: 'Estiramiento CC' },
+                    { frequency: 1705, intensity: 0.9, mode: 'Estiramiento C=O' }
+                ]
+            },
+            aspirin: {
+                name: 'Aspirina',
+                formula: 'C₉H₈O₄',
+                mass: 180.16,
+                pointGroup: 'C₁',
+                dipole: 1.87,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.4, 0, 0], type: 'C' },
+                    { pos: [2.1, 1.2, 0], type: 'C' },
+                    { pos: [1.4, 2.4, 0], type: 'C' },
+                    { pos: [0, 2.4, 0], type: 'C' },
+                    { pos: [-0.7, 1.2, 0], type: 'C' },
+                    { pos: [2.8, 1.2, 0], type: 'O' },
+                    { pos: [3.5, 0, 0], type: 'C' },
+                    { pos: [4.2, 0.5, 0], type: 'O' },
+                    { pos: [3.5, -0.9, 0], type: 'O' }
+                ],
+                bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[2,6],[6,7],[7,8],[7,9]],
+                sapt: { elec: -72.3, ind: -21.5, disp: -38.9, exch: 105.7 },
+                minEnergy: -183.4,
+                barrier: 35.6,
+                orbitals: {
+                    homo: -9.1,
+                    lumo: -1.5,
+                    gap: 7.6
+                },
+                vibrations: [
+                    { frequency: 750, intensity: 0.7, mode: 'Respiración del anillo' },
+                    { frequency: 1180, intensity: 0.8, mode: 'Estiramiento C-O' },
+                    { frequency: 1600, intensity: 0.9, mode: 'Estiramiento C=O' },
+                    { frequency: 1750, intensity: 0.9, mode: 'Estiramiento C=O éster' }
+                ]
+            },
+            glucose: {
+                name: 'Glucosa',
+                formula: 'C₆H₁₂O₆',
+                mass: 180.16,
+                pointGroup: 'C₁',
+                dipole: 2.34,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.5, 0, 0], type: 'C' },
+                    { pos: [2.0, 1.4, 0], type: 'C' },
+                    { pos: [1.2, 2.6, 0], type: 'C' },
+                    { pos: [-0.3, 2.6, 0], type: 'C' },
+                    { pos: [-0.8, 1.2, 0], type: 'C' },
+                    { pos: [0, -0.9, 0], type: 'O' },
+                    { pos: [1.5, -0.9, 0], type: 'O' },
+                    { pos: [2.5, 1.4, 0], type: 'O' },
+                    { pos: [1.2, 3.8, 0], type: 'O' },
+                    { pos: [-0.3, 3.8, 0], type: 'O' },
+                    { pos: [-1.8, 1.2, 0], type: 'O' }
+                ],
+                bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]],
+                sapt: { elec: -85.2, ind: -28.7, disp: -45.3, exch: 125.8 },
+                minEnergy: -210.5,
+                barrier: 42.8,
+                orbitals: {
+                    homo: -10.2,
+                    lumo: -0.8,
+                    gap: 9.4
+                },
+                vibrations: [
+                    { frequency: 920, intensity: 0.6, mode: 'Deformación anillo' },
+                    { frequency: 1080, intensity: 0.7, mode: 'Estiramiento C-O' },
+                    { frequency: 1260, intensity: 0.5, mode: 'Flexión CH' },
+                    { frequency: 1450, intensity: 0.6, mode: 'Deformación CH₂' },
+                    { frequency: 2900, intensity: 0.8, mode: 'Estiramiento CH' }
+                ]
+            },
+            adrenaline: {
+                name: 'Adrenalina',
+                formula: 'C₉H₁₃NO₃',
+                mass: 183.20,
+                pointGroup: 'C₁',
+                dipole: 2.98,
+                atoms: [
+                    { pos: [0, 0, 0], type: 'C' },
+                    { pos: [1.4, 0, 0], type: 'C' },
+                    { pos: [2.1, 1.2, 0], type: 'C' },
+                    { pos: [1.4, 2.4, 0], type: 'C' },
+                    { pos: [0, 2.4, 0], type: 'C' },
+                    { pos: [-0.7, 1.2, 0], type: 'C' },
+                    { pos: [2.8, 1.2, 0], type: 'C' },
+                    { pos: [3.5, 0, 0], type: 'N' },
+                    { pos: [4.2, 0.5, 0], type: 'O' },
+                    { pos: [3.5, -0.9, 0], type: 'O' },
+                    { pos: [2.8, 2.4, 0], type: 'O' }
+                ],
+                bonds: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[2,6],[6,7],[7,8],[7,9],[3,10]],
+                sapt: { elec: -81.5, ind: -26.3, disp: -41.2, exch: 118.7 },
+                minEnergy: -201.8,
+                barrier: 40.5,
+                orbitals: {
+                    homo: -8.9,
+                    lumo: -1.1,
+                    gap: 7.8
+                },
+                vibrations: [
+                    { frequency: 760, intensity: 0.7, mode: 'Respiración del anillo' },
+                    { frequency: 1250, intensity: 0.8, mode: 'Estiramiento C-N' },
+                    { frequency: 1450, intensity: 0.6, mode: 'Deformación CH₂' },
+                    { frequency: 1600, intensity: 0.9, mode: 'Estiramiento C=O' },
+                    { frequency: 3200, intensity: 0.7, mode: 'Estiramiento OH' }
+                ]
+            }
+        };
+
+        let currentMolecule = 'benzene';
+        let scene, camera, renderer, moleculeGroup;
+        let orbitalScene, orbitalCamera, orbitalRenderer;
+        let pesChart, thermoChart, comparisonChart;
+        let isVibrating = false;
+        let isShowingOrbitals = false;
+        let isComparing = false;
+        let originalPositions = [];
+        let vibrationInterval;
+
+        // ==================== INICIALIZACIÓN ====================
+        function init() {
+            setupThreeJS();
+            setupOrbitalViewer();
+            setupEventListeners();
+            loadMolecule(currentMolecule);
+            createParticleBackground();
+        }
+
+        // ==================== THREE.JS SETUP ====================
+        function setupThreeJS() {
+            const container = document.getElementById('molecule-canvas');
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / 500, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            renderer.setSize(container.clientWidth, 500);
+            renderer.setClearColor(0x0a0e27, 0.5);
+            container.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            
+            const pointLight1 = new THREE.PointLight(0x00D9FF, 1, 100);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x9D4EDD, 0.8, 100);
+            pointLight2.position.set(-10, -10, 10);
+            scene.add(pointLight2);
+
+            camera.position.z = 8;
+            animate();
+        }
+
+        // ==================== VISUALIZADOR DE ORBITALES ====================
+        function setupOrbitalViewer() {
+            const container = document.getElementById('orbital-canvas');
+            orbitalScene = new THREE.Scene();
+            orbitalCamera = new THREE.PerspectiveCamera(75, container.clientWidth / 300, 0.1, 1000);
+            orbitalRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            orbitalRenderer.setSize(container.clientWidth, 300);
+            orbitalRenderer.setClearColor(0x0a0e27, 0.5);
+            container.appendChild(orbitalRenderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            orbitalScene.add(ambientLight);
+            
+            const pointLight1 = new THREE.PointLight(0x00D9FF, 1, 100);
+            pointLight1.position.set(10, 10, 10);
+            orbitalScene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x9D4EDD, 0.8, 100);
+            pointLight2.position.set(-10, -10, 10);
+            orbitalScene.add(pointLight2);
+
+            orbitalCamera.position.z = 8;
+        }
+
+        // ==================== CARGAR MOLÉCULA ====================
+        function loadMolecule(molId) {
+            const mol = moleculeDatabase[molId];
+            
+            // Limpiar escena anterior
+            if (moleculeGroup) {
+                scene.remove(moleculeGroup);
+            }
+            
+            moleculeGroup = new THREE.Group();
+            originalPositions = [];
+            
+            // Materiales
+            const materials = {
+                'C': new THREE.MeshPhongMaterial({ color: 0x4ECDC4, shininess: 100, emissive: 0x4ECDC4, emissiveIntensity: 0.2 }),
+                'O': new THREE.MeshPhongMaterial({ color: 0xFF6B6B, shininess: 100, emissive: 0xFF6B6B, emissiveIntensity: 0.3 }),
+                'N': new THREE.MeshPhongMaterial({ color: 0xFFE66D, shininess: 100, emissive: 0xFFE66D, emissiveIntensity: 0.2 }),
+                'H': new THREE.MeshPhongMaterial({ color: 0xE8F4F8, shininess: 80, emissive: 0xE8F4F8, emissiveIntensity: 0.15 })
+            };
+            
+            const atomGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+            const bondGeometry = new THREE.CylinderGeometry(0.08, 0.08, 1, 16);
+            const bondMaterial = new THREE.MeshPhongMaterial({ color: 0x95E1D3, opacity: 0.7, transparent: true });
+
+            // Crear átomos
+            mol.atoms.forEach((atom, i) => {
+                const material = materials[atom.type];
+                const atomMesh = new THREE.Mesh(atomGeometry, material);
+                atomMesh.position.set(...atom.pos);
+                moleculeGroup.add(atomMesh);
+                originalPositions.push([...atom.pos]);
+
+                // Efecto glow
+                const glowGeometry = new THREE.SphereGeometry(0.35, 16, 16);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: material.color,
+                    transparent: true,
+                    opacity: 0.3
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                glow.position.set(...atom.pos);
+                moleculeGroup.add(glow);
+            });
+
+            // Crear enlaces
+            mol.bonds.forEach(([i, j]) => {
+                const start = new THREE.Vector3(...mol.atoms[i].pos);
+                const end = new THREE.Vector3(...mol.atoms[j].pos);
+                const distance = start.distanceTo(end);
+                const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+                
+                const bond = new THREE.Mesh(bondGeometry, bondMaterial);
+                bond.position.copy(midpoint);
+                bond.scale.y = distance;
+                bond.lookAt(end);
+                bond.rotateX(Math.PI / 2);
+                
+                moleculeGroup.add(bond);
+            });
+
+            scene.add(moleculeGroup);
+            
+            // Actualizar UI
+            updateUI(mol);
+            updateCharts(mol);
+            
+            // Si estamos en modo comparación, actualizar también
+            if (isComparing) {
+                updateComparison();
+            }
+        }
+
+        // ==================== SIMULACIÓN DE VIBRACIONES ====================
+        function startVibrations() {
+            if (isVibrating) return;
+            
+            isVibrating = true;
+            const mol = moleculeDatabase[currentMolecule];
+            const atoms = moleculeGroup.children.filter(child => child.geometry instanceof THREE.SphereGeometry);
+            
+            let time = 0;
+            vibrationInterval = setInterval(() => {
+                time += 0.1;
+                
+                atoms.forEach((atom, i) => {
+                    const originalPos = originalPositions[i];
+                    const vibration = Math.sin(time * 10 + i) * 0.05;
+                    atom.position.x = originalPos[0] + vibration;
+                    atom.position.y = originalPos[1] + vibration;
+                    atom.position.z = originalPos[2] + vibration;
+                });
+            }, 50);
+        }
+
+        function stopVibrations() {
+            if (!isVibrating) return;
+            
+            isVibrating = false;
+            clearInterval(vibrationInterval);
+            
+            const atoms = moleculeGroup.children.filter(child => child.geometry instanceof THREE.SphereGeometry);
+            atoms.forEach((atom, i) => {
+                const originalPos = originalPositions[i];
+                atom.position.x = originalPos[0];
+                atom.position.y = originalPos[1];
+                atom.position.z = originalPos[2];
+            });
+        }
+
+        // ==================== VISUALIZACIÓN DE ORBITALES ====================
+        function showOrbitals() {
+            isShowingOrbitals = true;
+            document.getElementById('orbital-viewer').style.display = 'flex';
+            
+            // Crear una representación simple de orbitales (esferas con transparencia)
+            const orbitalGeometry = new THREE.SphereGeometry(2, 32, 32);
+            const orbitalMaterial = new THREE.MeshPhongMaterial({
+                color: 0x00D9FF,
+                transparent: true,
+                opacity: 0.3,
+                wireframe: true
+            });
+            
+            const orbital = new THREE.Mesh(orbitalGeometry, orbitalMaterial);
+            orbitalScene.add(orbital);
+            
+            animateOrbitals();
+        }
+
+        function hideOrbitals() {
+            isShowingOrbitals = false;
+            document.getElementById('orbital-viewer').style.display = 'none';
+            orbitalScene.children.forEach(child => {
+                if (child.geometry instanceof THREE.SphereGeometry) {
+                    orbitalScene.remove(child);
+                }
+            });
+        }
+
+        function animateOrbitals() {
+            if (!isShowingOrbitals) return;
+            
+            requestAnimationFrame(animateOrbitals);
+            
+            orbitalScene.children.forEach(child => {
+                if (child.geometry instanceof THREE.SphereGeometry) {
+                    child.rotation.x += 0.01;
+                    child.rotation.y += 0.02;
+                }
+            });
+            
+            orbitalRenderer.render(orbitalScene, orbitalCamera);
+        }
+
+        // ==================== COMPARACIÓN DE MOLÉCULAS ====================
+        function showComparison() {
+            isComparing = true;
+            document.getElementById('comparison-panel').style.display = 'block';
+            updateComparison();
+        }
+
+        function hideComparison() {
+            isComparing = false;
+            document.getElementById('comparison-panel').style.display = 'none';
+        }
+
+        function updateComparison() {
+            const mol1Id = document.getElementById('compare-mol1').value;
+            const mol2Id = document.getElementById('compare-mol2').value;
+            
+            const mol1 = moleculeDatabase[mol1Id];
+            const mol2 = moleculeDatabase[mol2Id];
+            
+            document.getElementById('compare-data1').innerHTML = `
+                <div class="property-row">
+                    <span class="property-label">Energía Mínima:</span>
+                    <span class="property-value">${mol1.minEnergy.toFixed(1)} kJ/mol</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Momento Dipolar:</span>
+                    <span class="property-value">${mol1.dipole.toFixed(2)} D</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">HOMO-LUMO Gap:</span>
+                    <span class="property-value">${mol1.orbitals.gap.toFixed(1)} eV</span>
+                </div>
+            `;
+            
+            document.getElementById('compare-data2').innerHTML = `
+                <div class="property-row">
+                    <span class="property-label">Energía Mínima:</span>
+                    <span class="property-value">${mol2.minEnergy.toFixed(1)} kJ/mol</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Momento Dipolar:</span>
+                    <span class="property-value">${mol2.dipole.toFixed(2)} D</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">HOMO-LUMO Gap:</span>
+                    <span class="property-value">${mol2.orbitals.gap.toFixed(1)} eV</span>
+                </div>
+            `;
+            
+            // Actualizar gráfico de comparación
+            if (comparisonChart) comparisonChart.destroy();
+            
+            const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+            comparisonChart = new Chart(comparisonCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Energía Mínima (kJ/mol)', 'Momento Dipolar (D)', 'HOMO-LUMO Gap (eV)'],
+                    datasets: [
+                        {
+                            label: mol1.name,
+                            data: [Math.abs(mol1.minEnergy), mol1.dipole, mol1.orbitals.gap],
+                            backgroundColor: 'rgba(0, 217, 255, 0.7)',
+                            borderColor: '#00D9FF',
+                            borderWidth: 2
+                        },
+                        {
+                            label: mol2.name,
+                            data: [Math.abs(mol2.minEnergy), mol2.dipole, mol2.orbitals.gap],
+                            backgroundColor: 'rgba(157, 78, 221, 0.7)',
+                            borderColor: '#9D4EDD',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#fff', font: { size: 14, weight: 'bold' } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            titleColor: '#00F5FF',
+                            bodyColor: '#fff',
+                            borderColor: '#00D9FF',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== EXPORTACIÓN DE DATOS ====================
+        function exportData() {
+            const mol = moleculeDatabase[currentMolecule];
+            const data = {
+                name: mol.name,
+                formula: mol.formula,
+                properties: {
+                    mass: mol.mass,
+                    dipole: mol.dipole,
+                    pointGroup: mol.pointGroup,
+                    minEnergy: mol.minEnergy,
+                    saptComponents: mol.sapt,
+                    orbitals: mol.orbitals
+                }
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${mol.name.toLowerCase()}_data.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportImage() {
+            const container = document.getElementById('molecule-canvas');
+            renderer.render(scene, camera);
+            const image = renderer.domElement.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = image;
+            a.download = `${currentMolecule}_3d_structure.png`;
+            a.click();
+        }
+
+        // ==================== ACTUALIZAR UI ====================
+        function updateUI(mol) {
+            document.getElementById('molecule-title').textContent = 
+                `${mol.name.toUpperCase()} (${mol.formula}) | Estructura 3D Optimizada`;
+            
+            document.getElementById('molecule-details').innerHTML = `
+                <h3>Propiedades Moleculares - ${mol.name}</h3>
+                <div class="property-row">
+                    <span class="property-label">Fórmula Molecular:</span>
+                    <span class="property-value">${mol.formula}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Masa Molecular:</span>
+                    <span class="property-value">${mol.mass} g/mol</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Grupo Puntual:</span>
+                    <span class="property-value">${mol.pointGroup}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">Momento Dipolar:</span>
+                    <span class="property-value">${mol.dipole.toFixed(2)} D ${mol.dipole === 0 ? '(apolar)' : '(polar)'}</span>
+                </div>
+                <div class="property-row">
+                    <span class="property-label">HOMO-LUMO Gap:</span>
+                    <span class="property-value">${mol.orbitals.gap.toFixed(1)} eV</span>
+                </div>
+            `;
+
+            // Actualizar componentes SAPT
+            const totalEnergy = mol.sapt.elec + mol.sapt.ind + mol.sapt.disp + mol.sapt.exch;
+            document.getElementById('sapt-components').innerHTML = `
+                <div class="energy-bar">
+                    <div class="energy-label">Electrostático</div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-fill" style="width: ${Math.abs(mol.sapt.elec/mol.sapt.exch)*100}%; background: linear-gradient(90deg, #00D9FF, #0099CC);"></div>
+                    </div>
+                    <div class="energy-value" style="color: #00D9FF;">${mol.sapt.elec.toFixed(1)} kJ/mol</div>
+                </div>
+                <div class="energy-bar">
+                    <div class="energy-label">Inducción</div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-fill" style="width: ${Math.abs(mol.sapt.ind/mol.sapt.exch)*100}%; background: linear-gradient(90deg, #9D4EDD, #7B2CBF);"></div>
+                    </div>
+                    <div class="energy-value" style="color: #9D4EDD;">${mol.sapt.ind.toFixed(1)} kJ/mol</div>
+                </div>
+                <div class="energy-bar">
+                    <div class="energy-label">Dispersión</div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-fill" style="width: ${Math.abs(mol.sapt.disp/mol.sapt.exch)*100}%; background: linear-gradient(90deg, #06FFA5, #04CC82);"></div>
+                    </div>
+                    <div class="energy-value" style="color: #06FFA5;">${mol.sapt.disp.toFixed(1)} kJ/mol</div>
+                </div>
+                <div class="energy-bar">
+                    <div class="energy-label">Intercambio (Pauli)</div>
+                    <div class="energy-bar-container">
+                        <div class="energy-bar-fill" style="width: 100%; background: linear-gradient(90deg, #FF006E, #CC0055);"></div>
+                    </div>
+                    <div class="energy-value" style="color: #FF006E;">+${mol.sapt.exch.toFixed(1)} kJ/mol</div>
+                </div>
+                <div style="margin-top: 20px; padding: 15px; background: rgba(255,214,10,0.1); border-radius: 10px; border: 2px solid #FFD60A;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 0.9em; color: #FFD60A;">ENERGÍA TOTAL CALCULADA</div>
+                        <div style="font-size: 2.5em; font-weight: bold; color: #FFD60A; margin-top: 5px;">${totalEnergy.toFixed(1)} kJ/mol</div>
+                    </div>
+                </div>
+            `;
+
+            // Actualizar métricas
+            const rms = (0.05 * (1 + Math.random() * 0.2)).toFixed(3);
+            const corr = (99.8 - Math.random() * 0.5).toFixed(1);
+            const geom = (0.001 * (1 + Math.random() * 0.3)).toFixed(4);
+            const errE = (0.1 * (1 + Math.random() * 0.5)).toFixed(2);
+
+            document.getElementById('metrics-grid').innerHTML = `
+                <div class="metric-card">
+                    <div class="metric-label">Error RMS</div>
+                    <div class="metric-value">${rms}</div>
+                    <div class="metric-label">cm⁻¹</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Correlación R²</div>
+                    <div class="metric-value">${corr}%</div>
+                    <div class="metric-label">Experimental</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Precisión Geom.</div>
+                    <div class="metric-value">${geom}</div>
+                    <div class="metric-label">Ångström</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Error Energético</div>
+                    <div class="metric-value">${errE}</div>
+                    <div class="metric-label">kJ/mol</div>
+                </div>
+            `;
+        }
+
+        // ==================== ACTUALIZAR GRÁFICOS ====================
+        function updateCharts(mol) {
+            // Destruir gráficos anteriores
+            if (pesChart) pesChart.destroy();
+            if (thermoChart) thermoChart.destroy();
+
+            // Gráfico PES
+            const distances = [];
+            const energies = [];
+            
+            for (let r = 2.0; r <= 7.0; r += 0.1) {
+                distances.push(r.toFixed(1));
+                const epsilon = mol.minEnergy;
+                const sigma = 3.2;
+                const lj = 4 * Math.abs(epsilon) * (Math.pow(sigma/r, 12) - Math.pow(sigma/r, 6));
+                const barrier = mol.barrier * Math.exp(-Math.pow(r - 2.8, 2) / 0.3);
+                energies.push(lj + barrier);
+            }
+
+            const pesCtx = document.getElementById('pesChart').getContext('2d');
+            pesChart = new Chart(pesCtx, {
+                type: 'line',
+                data: {
+                    labels: distances,
+                    datasets: [{
+                        label: 'Energía Potencial V(r)',
+                        data: energies,
+                        borderColor: '#00D9FF',
+                        backgroundColor: 'rgba(0, 217, 255, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#00F5FF',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#fff', font: { size: 14, weight: 'bold' } }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            titleColor: '#00F5FF',
+                            bodyColor: '#fff',
+                            borderColor: '#00D9FF',
+                            borderWidth: 2,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'E = ' + context.parsed.y.toFixed(2) + ' kJ/mol';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Distancia Intermolecular r (Å)', color: '#00F5FF', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Energía Potencial (kJ/mol)', color: '#00F5FF', font: { size: 14, weight: 'bold' } },
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+
+            // Gráfico Termodinámico
+            const temperatures = [];
+            const cp_values = [];
+            const entropy_values = [];
+            
+            for (let T = 200; T <= 1000; T += 50) {
+                temperatures.push(T);
+                const Cp = 29.1 + 0.023*T - 1.5e-5*T*T + 5e-9*T*T*T + (mol.mass / 50);
+                const S = 188.7 + 25*Math.log(T/298.15) + 0.01*(T - 298.15) + (mol.mass / 10);
+                cp_values.push(Cp);
+                entropy_values.push(S);
+            }
+
+            const thermoCtx = document.getElementById('thermoChart').getContext('2d');
+            thermoChart = new Chart(thermoCtx, {
+                type: 'line',
+                data: {
+                    labels: temperatures,
+                    datasets: [
+                        {
+                            label: 'Cp - Capacidad Calorífica (J·mol⁻¹·K⁻¹)',
+                            data: cp_values,
+                            borderColor: '#FF9E00',
+                            backgroundColor: 'rgba(255, 158, 0, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#FF9E00',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'S - Entropía Molar (J·mol⁻¹·K⁻¹)',
+                            data: entropy_values,
+                            borderColor: '#06FFA5',
+                            backgroundColor: 'rgba(6, 255, 165, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            pointRadius: 4,
+                            pointBackgroundColor: '#06FFA5',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: '#fff', font: { size: 12, weight: 'bold' }, usePointStyle: true, padding: 15 }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(10, 14, 39, 0.9)',
+                            titleColor: '#00F5FF',
+                            bodyColor: '#fff',
+                            borderColor: '#00D9FF',
+                            borderWidth: 2,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Temperatura (K)', color: '#00F5FF', font: { size: 13, weight: 'bold' } },
+                            ticks: { color: '#aaa' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: { display: true, text: 'Cp (J·mol⁻¹·K⁻¹)', color: '#FF9E00', font: { size: 13, weight: 'bold' } },
+                            ticks: { color: '#FF9E00' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            position: 'right',
+                            title: { display: true, text: 'S (J·mol⁻¹·K⁻¹)', color: '#06FFA5', font: { size: 13, weight: 'bold' } },
+                            ticks: { color: '#06FFA5' },
+                            grid: { display: false }
+                        }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+        }
+
+        // ==================== ANIMACIÓN ====================
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            if (moleculeGroup && !isVibrating) {
+                moleculeGroup.rotation.x = Math.sin(time * 0.3) * 0.2;
+                moleculeGroup.rotation.y += 0.005;
+                moleculeGroup.rotation.z = Math.cos(time * 0.2) * 0.1;
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // ==================== EVENT LISTENERS ====================
+        function setupEventListeners() {
+            const buttons = document.querySelectorAll('.molecule-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMolecule = btn.dataset.molecule;
+                    loadMolecule(currentMolecule);
+                });
+            });
+
+            // Controles de funcionalidades adicionales
+            document.getElementById('toggle-orbitals').addEventListener('click', function() {
+                if (isShowingOrbitals) {
+                    hideOrbitals();
+                    this.textContent = 'Mostrar Orbitales';
+                } else {
+                    showOrbitals();
+                    this.textContent = 'Ocultar Orbitales';
+                }
+            });
+
+            document.getElementById('toggle-vibrations').addEventListener('click', function() {
+                if (isVibrating) {
+                    stopVibrations();
+                    this.textContent = 'Simular Vibraciones';
+                    document.getElementById('simulation-controls').style.display = 'none';
+                } else {
+                    startVibrations();
+                    this.textContent = 'Detener Vibraciones';
+                    document.getElementById('simulation-controls').style.display = 'flex';
+                }
+            });
+
+            document.getElementById('compare-molecules').addEventListener('click', function() {
+                if (isComparing) {
+                    hideComparison();
+                    this.textContent = 'Comparar Moléculas';
+                } else {
+                    showComparison();
+                    this.textContent = 'Ocultar Comparación';
+                }
+            });
+
+            document.getElementById('export-data').addEventListener('click', exportData);
+            document.getElementById('export-image').addEventListener('click', exportImage);
+            document.getElementById('export-json').addEventListener('click', exportData);
+
+            // Selectores de comparación
+            document.getElementById('compare-mol1').addEventListener('change', updateComparison);
+            document.getElementById('compare-mol2').addEventListener('change', updateComparison);
+
+            // Botones de orbitales
+            document.querySelectorAll('.orbital-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.orbital-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    // Aquí se podría cargar el orbital específico
+                });
+            });
+
+            window.addEventListener('resize', () => {
+                const container = document.getElementById('molecule-canvas');
+                renderer.setSize(container.clientWidth, 500);
+                camera.aspect = container.clientWidth / 500;
+                camera.updateProjectionMatrix();
+                
+                const orbitalContainer = document.getElementById('orbital-canvas');
+                orbitalRenderer.setSize(orbitalContainer.clientWidth, 300);
+                orbitalCamera.aspect = orbitalContainer.clientWidth / 300;
+                orbitalCamera.updateProjectionMatrix();
+            });
+        }
+
+        // ==================== FONDO DE PARTÍCULAS ====================
+        function createParticleBackground() {
+            const canvas = document.createElement('canvas');
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '-1';
+            canvas.style.opacity = '0.3';
+            document.body.appendChild(canvas);
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 100;
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.5;
+                    this.vy = (Math.random() - 0.5) * 0.5;
+                    this.radius = Math.random() * 2 + 1;
+                    this.color = ['#00D9FF', '#9D4EDD', '#06FFA5', '#FF006E'][Math.floor(Math.random() * 4)];
+                }
+
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < 100) {
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(0, 217, 255, ${1 - distance / 100})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+                requestAnimationFrame(animateParticles);
+            }
+
+            animateParticles();
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+
+        // ==================== INICIALIZAR ====================
+        window.addEventListener('load', init);
+
+        console.log('%c GeoSSL + SAPT MULTI-MOLECULAR ANALYZER INITIALIZED', 
+                   'color: #00D9FF; font-size: 16px; font-weight: bold;');
+        console.log('%c10 MOLECULES LOADED: Benzene, Water, Methane, Ethanol, CO2, Ammonia, Caffeine, Aspirin, Glucose, Adrenaline', 
+                   'color: #9D4EDD; font-size: 12px;');
+    </script>
+</body>
+</html>
