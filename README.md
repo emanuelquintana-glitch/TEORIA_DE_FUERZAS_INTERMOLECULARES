@@ -12,7 +12,7 @@
 
 <div align="center">
 
-# TEORÍA DE FUERZAS INTERMOLECULARES
+# Teoía de Fuerzas Intermolecurales
 
 ### Una Introducción Fundamental al Mundo Cuántico de las Interacciones Moleculares
 
