@@ -1976,7 +1976,7 @@ La **sinergia sinérgica** entre múltiples disciplinas científicas ha sido fun
 
 ---
 
-*Última actualización: Octubre 2025*  
+*Última actualización: Diciembre 2025*  
 *Mantenido con dedicación por la comunidad internacional de Química Computacional*
 
 </div>
