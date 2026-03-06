@@ -171,7 +171,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="right">
 
-**Adaptación de Técnicas Computacionales Avanzadas**  
+**Adaptación de Técnicas Computacionales Avanzadas.**  
 *Para Aplicaciones en Sistemas Complejos*
 
 </div>
