@@ -109,7 +109,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="center">
 
-## *El Paradigma Moderno de las Interacciones Moleculares*
+## *El Paradigma Moderno de las Interacciones Moleculares-*
 
 </div>
 
