@@ -80,7 +80,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="center">
 
-## *El Fundamento Cuántico de las Interacciones Moleculares*
+## *El Fundamento Cuántico de las Interacciones Moleculares.*
 
 </div>
 
