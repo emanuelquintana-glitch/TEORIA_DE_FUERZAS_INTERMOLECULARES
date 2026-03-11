@@ -1663,24 +1663,24 @@ donde:
 </div>
 
 ```
-📦 teoria-fuerzas-intermoleculares/
+ teoria-fuerzas-intermoleculares/
 │
-├── 📂 01_fundamentos-teoricos/
-│   ├── 📂 teoria-perturbaciones/
+├──  01_fundamentos-teoricos/
+│   ├──  teoria-perturbaciones/
 │   │   ├── sapt-fundamentos.pdf
 │   │   ├── convergencia-ordenes.md
 │   │   └── ejemplos-calculo/
-│   ├── 📂 adaptacion-simetria/
+│   ├──  adaptacion-simetria/
 │   │   ├── grupos-puntuales.md
 │   │   ├── tablas-caracteres.pdf
 │   │   └── aplicaciones/
-│   └── 📂 formulacion-muchos-electrones/
+│   └──  formulacion-muchos-electrones/
 │       ├── metodos-post-hf.md
 │       ├── coupled-cluster.pdf
 │       └── implementaciones/
 │
-├── 📂 02_metodos-computacionales/
-│   ├── 📂 implementaciones-sapt/
+├──  02_metodos-computacionales/
+│   ├──  implementaciones-sapt/
 │   │   ├── sapt2020.f90
 │   │   ├── scripts-python/
 │   │   └── documentacion/
