@@ -1684,17 +1684,17 @@ donde:
 │   │   ├── sapt2020.f90
 │   │   ├── scripts-python/
 │   │   └── documentacion/
-│   ├── 📂 aproximaciones-dft/
+│   ├──  aproximaciones-dft/
 │   │   ├── funcionales-hibridos.md
 │   │   ├── correcciones-dispersion.pdf
 │   │   └── benchmarks/
-│   └── 📂 tecnicas-qm-mm/
+│   └──  tecnicas-qm-mm/
 │       ├── interfaz-qm-mm.cpp
 │       ├── particionamiento.md
 │       └── casos-uso/
 │
-├── 📂 03_aplicaciones/
-│   ├── 📂 espectroscopia/
+├──  03_aplicaciones/
+│   ├──  espectroscopia/
 │   │   ├── rotacional/
 │   │   ├── vibracional/
 │   │   ├── raman/
