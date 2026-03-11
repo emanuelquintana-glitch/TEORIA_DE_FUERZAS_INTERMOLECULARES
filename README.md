@@ -1757,11 +1757,11 @@ donde:
 │   ├── conversion-formatos/
 │   └── visualizacion/
 │
-├── 📄 README.md
-├── 📄 LICENSE
-├── 📄 CITATION.cff
-├── 📄 CONTRIBUTING.md
-└── 📄 requirements.txt
+├──  README.md
+├──  LICENSE
+├──  CITATION.cff
+├──  CONTRIBUTING.md
+└──  requirements.txt
 ```
 
 ---
