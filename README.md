@@ -288,7 +288,7 @@ Las interacciones moleculares constituyen la base fundamental de la química y l
 
 ---
 
-### Intercambio-Repulsión
+### Intercambio-Repulsión.
 **Naturaleza**: Principio de exclusión de Pauli  
 **Alcance**: Corto alcance | **Energía**: Repulsiva exponencial
 
