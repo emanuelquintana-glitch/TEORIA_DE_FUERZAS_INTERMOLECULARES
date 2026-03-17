@@ -163,7 +163,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="center">
 
-## *Convergencia Interdisciplinaria en Ciencia de Materiales*
+## *Convergencia Interdisciplinaria en Ciencia de Materiales.*
 
 </div>
 
@@ -190,7 +190,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="center">
 
-## *El Futuro del Diseño Computacional de Materiales*
+## *El Futuro del Diseño Computacional de Materiales.*
 
 </div>
 
