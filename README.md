@@ -372,7 +372,7 @@ La **SAPT** constituye el **estándar de oro** (*gold standard*) para el cálcul
 </td>
 </tr>
 
-### *Descomposición Energética*
+### *Descomposición Energética.*
 
 La energía de interacción entre moléculas ($\mathbf{E_{int}}$) es un concepto fundamental en química y física, que permite entender cómo los sistemas moleculares se unen o repelen. No es una magnitud sencilla, sino que se puede descomponer en varias contribuciones, cada una con un significado físico distinto. Esta descomposición es clave para predecir propiedades y comportamientos de materiales.
 
@@ -423,7 +423,7 @@ La descomposición energética se basa a menudo en la teoría de perturbaciones,
 
 ---
 
-### *Balance Precisión-Eficiencia Óptimo*
+### *Balance Precisión-Eficiencia Óptimo.*
 
 La **DFT** representa la herramienta contemporánea por excelencia para el modelado de materiales moleculares complejos. El **equilibrio óptimo** entre precisión mecánico-cuántica y viabilidad computacional permite el tratamiento rutinario de sistemas con cientos o miles de átomos, manteniendo una descripción cuántica fundamental de la estructura electrónica.
 
