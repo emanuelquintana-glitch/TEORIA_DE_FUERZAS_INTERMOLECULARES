@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Cálculos Ab Initio Rigurosos de Superficies de Energía Potencial
-SAPT (Symmetry-Adapted Perturbation Theory) de Alta Precisión
+SAPT (Symmetry-Adapted Perturbation Theory.) de Alta Precisión.
 """
 
 import numpy as np
