@@ -12,7 +12,7 @@ from typing import Tuple, Dict, List
 import warnings
 warnings.filterwarnings('ignore')
 
-# Definimos las clases
+# Definimos las Clases
 class SAPTCalculator:
     """
     Calculadora rigurosa de Superficies de Energía Potencial usando teoría SAPT
