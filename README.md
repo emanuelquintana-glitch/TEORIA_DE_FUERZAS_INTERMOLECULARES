@@ -37,7 +37,7 @@
 
 <div align="right">
 
-**Richard Feynman**  
+**Richard Feynman.**  
 *The Feynman Lectures on Physics*
 
 </div>
