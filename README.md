@@ -68,7 +68,7 @@
 
 ---
 
-### *Contexto Científico.*
+### *Contexto Científico*
 
 Las interacciones intermoleculares constituyen una de las fuerzas fundamentales que determinan las propiedades específicas y la autoorganización de la materia condensada, incluyendo los sistemas biológicos. Su comprensión cuantitativa es esencial para el diseño racional de nuevos materiales y el entendimiento de procesos moleculares complejos.
 
