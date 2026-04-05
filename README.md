@@ -12,9 +12,9 @@
 
 <div align="center">
 
-# Teoía de Fuerzas Intermolecurales.
+# Teoía de Fuerzas Intermolecurales
 
-### Una Introducción Fundamental al Mundo Cuántico de las Interacciones Moleculares
+### Una Introducción Fundamental al Mundo Cuántico de las Interacciones Moleculares.
 
 ![Quantum](https://img.shields.io/badge/Quantum-Chemistry-8A2BE2?style=for-the-badge)
 ![Computational](https://img.shields.io/badge/Computational-Physics-FF6347?style=for-the-badge)
