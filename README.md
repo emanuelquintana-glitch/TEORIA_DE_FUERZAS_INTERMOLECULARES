@@ -136,7 +136,7 @@ Este trabajo presenta una **visión comprehensiva** de las metodologías computa
 
 <div align="center">
 
-## *La Revolución Computacional en Química Cuántica.*
+## *La Revolución Computacional en Química Cuántica*
 
 </div>
 
