@@ -717,7 +717,7 @@ $$ |Ψ⟩ = (|00⟩ + |11⟩)/√2 $$
 
 <div align="center">
 
-## Dominios de Investigación Contemporánea
+## Dominios de Investigación Contemporánea.
 ### *Del Nivel Fundamental al Aplicado*
 
 </div>
