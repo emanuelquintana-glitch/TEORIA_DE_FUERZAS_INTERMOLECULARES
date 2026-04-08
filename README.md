@@ -318,7 +318,7 @@ Las interacciones moleculares constituyen la base fundamental de la química y l
 
 <div align="center">
 
-**Conclusión**: La comprensión integrada de estos cuatro mecanismos permite el diseño racional de materiales y compuestos con propiedades específicas
+**Conclusión**: La comprensión integrada de estos cuatro mecanismos permite el diseño racional de materiales y compuestos con propiedades específicas.
 
 </div>
 
