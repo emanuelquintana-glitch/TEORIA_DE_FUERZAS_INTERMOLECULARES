@@ -1237,7 +1237,7 @@ DENSIDAD: 500 Wh/kg | CICLOS: >2000
 <td width="25%" style="background: linear-gradient(135deg, #1A0A2A 0%, #3A1A4A 100%); color: #AA00FF; border-radius: 8px; padding: 25px 20px; box-shadow: 0 8px 32px rgba(170, 0, 255, 0.2); border: 1px solid #AA00FF; transition: transform 0.3s ease, box-shadow 0.3s ease;">
 <div style="font-family: 'Courier New', monospace;">
 
-### QUÍMICA DE SUPERFICIES
+### QUÍMICA DE SUPERFICIES.
 
 <div style="height: 1px; background: linear-gradient(90deg, transparent, #AA00FF 50%, transparent); margin: 20px 0;"></div>
 
