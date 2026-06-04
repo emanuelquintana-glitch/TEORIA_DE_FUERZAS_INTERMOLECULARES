@@ -27,7 +27,7 @@
 
 <div align="center">
 
-## *La Naturaleza Fundamental de la Materia*
+## *La Naturaleza Fundamental de la Materia.*
 
 </div>
 
