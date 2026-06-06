@@ -9,7 +9,7 @@
   <img src="assets/pixlr-image-generator-68ea8613c407d01bae2f962a.png" width="45%" />
   <img src="assets/pixlr-image-generator-68ea8624cc9fc101ce0d564e.png" width="45%" />
 </p>
--
+
 <div align="center">
 
 #  Teoía de Fuerzas Intermolecurales
