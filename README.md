@@ -11,7 +11,7 @@
 </p>
 
 <div align="center">
-.
+
 # Teoía de Fuerzas Intermolecurales
 
 ### Una Introducción Fundamental al Mundo Cuántico de las Interacciones Moleculares
