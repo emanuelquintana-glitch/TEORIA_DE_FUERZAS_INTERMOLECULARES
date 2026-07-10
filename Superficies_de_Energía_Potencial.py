@@ -3,6 +3,11 @@
 Cálculos Ab Initio Rigurosos de Superficies de Energía Potencial
 SAPT (Symmetry-Adapted Perturbation Theory.) de Alta Precisión.
 """
+
+int main (void) 
+
+
+
 # Importamos las libreias necesarias
 import numpy as np
 import matplotlib.pyplot as plt
