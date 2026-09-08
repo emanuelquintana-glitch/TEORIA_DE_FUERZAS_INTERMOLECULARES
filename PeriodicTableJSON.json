@@ -3,6 +3,7 @@
     "elements": [
         {
             "name": "Hydrogen",
+            "category": "diatomic gas noble",
             "appearance": "colorless gas",
             "atomic_mass": 1.008,
             "boil": 20.271,
